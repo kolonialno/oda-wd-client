@@ -1,3 +1,8 @@
-from oda_wd_client.service.financial_management.types import ConversionRate, Currency, Company, ConversionRateType
+from oda_wd_client.service.financial_management.types import (
+    Company,
+    ConversionRate,
+    ConversionRateType,
+    Currency,
+)
 
-__all__ = ["ConversionRate", "Currency", "Company", "ConversionRate"]
+__all__ = ["ConversionRate", "Currency", "Company", "ConversionRateType"]

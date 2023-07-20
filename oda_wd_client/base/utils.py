@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 # As defined by API docs
 WORKDAY_DATE_FORMAT = "%m/%d/%Y"
 

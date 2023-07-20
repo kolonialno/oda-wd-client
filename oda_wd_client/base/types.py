@@ -9,6 +9,7 @@ class WorkdayReferenceBaseModel(BaseModel):
     These models are used to have a simple/convenient way to generate reference objects for Workday, through the use of
     workday_id and workday_id_type.
     """
+
     workday_id: str
     workday_id_type: str
     workday_parent_id: str | None = None
@@ -29,4 +30,3 @@ class WorkdayReferenceBaseModel(BaseModel):
 
         ref_obj.ID.append(id_obj)
         return ref_obj
-

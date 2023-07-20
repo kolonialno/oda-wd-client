@@ -2,7 +2,12 @@ from suds import sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
 from oda_wd_client.base.utils import get_id_from_list
-from oda_wd_client.service.financial_management.types import ConversionRate, Currency, Company, ConversionRateType
+from oda_wd_client.service.financial_management.types import (
+    Company,
+    ConversionRate,
+    ConversionRateType,
+    Currency,
+)
 from oda_wd_client.service.resource_management.types import TaxApplicability
 
 
@@ -10,21 +15,38 @@ def workday_conversion_rate_to_pydantic(data: dict) -> ConversionRate:
     """
     Create a ConversionRate pydantic object from a suds datadict from Workday
     """
-    workday_id = get_id_from_list(data["Currency_Conversion_Rate_Reference"]["ID"], "WID")
-    assert len(data["Currency_Conversion_Rate_Data"]) == 1, "Code is written expecting that we only have one currency " \
-                                                            "rate data per object, but that is not the case here"
+    workday_id = get_id_from_list(
+        data["Currency_Conversion_Rate_Reference"]["ID"], "WID"
+    )
+    assert len(data["Currency_Conversion_Rate_Data"]) == 1, (
+        "Code is written expecting that we only have one currency "
+        "rate data per object, but that is not the case here"
+    )
     sub_data = data["Currency_Conversion_Rate_Data"][0]
-    from_ref = get_id_from_list(sub_data["From_Currency_Reference"]["ID"], "Currency_ID")
-    target_ref = get_id_from_list(sub_data["Target_Currency_Reference"]["ID"], "Currency_ID")
-    type_id = get_id_from_list(sub_data["Currency_Rate_Type_Reference"]["ID"], "Currency_Rate_Type_ID")
+    from_ref = get_id_from_list(
+        sub_data["From_Currency_Reference"]["ID"], "Currency_ID"
+    )
+    target_ref = get_id_from_list(
+        sub_data["Target_Currency_Reference"]["ID"], "Currency_ID"
+    )
+    type_id = get_id_from_list(
+        sub_data["Currency_Rate_Type_Reference"]["ID"], "Currency_Rate_Type_ID"
+    )
+
+    assert workday_id, "All currency conversion rates need a Workday ID"
+    assert from_ref, "All currency conversion rates need a 'from currency'-reference"
+    assert (
+        target_ref
+    ), "All currency conversion rates need a 'target currency'-reference"
+    assert type_id, "All currency conversion rates need a 'rate type'-reference"
 
     return ConversionRate(
         workday_id=workday_id,
         from_currency_iso=from_ref,
         to_currency_iso=target_ref,
         rate=sub_data["Currency_Rate"],
-        rate_type_id=type_id,
-        effective_timestamp=sub_data["Effective_Timestamp"]
+        rate_type_id=ConversionRate.RateTypeID(type_id),
+        effective_timestamp=sub_data["Effective_Timestamp"],
     )
 
 
@@ -33,28 +55,35 @@ def workday_conversion_rate_type_to_pydantic(data: dict) -> ConversionRateType:
     Create a ConversionRateType pydantic object from a suds datadict from Workday
     """
     workday_id = get_id_from_list(data["Currency_Rate_Type_Reference"]["ID"], "WID")
-    assert len(data["Currency_Rate_Type_Data"]) == 1, "Code is written to expect that we only have one currency " \
-                                                      "rate type data per object, but that is not the case here"
+    assert workday_id, "All currency conversion rate types need a Workday ID"
+    assert len(data["Currency_Rate_Type_Data"]) == 1, (
+        "Code is written to expect that we only have one currency "
+        "rate type data per object, but that is not the case here"
+    )
     sub_data = data["Currency_Rate_Type_Data"][0]
     return ConversionRateType(
         workday_id=workday_id,
         text_id=sub_data["Currency_Rate_Type_ID"],
         description=sub_data["Currency_Rate_Type_Description"],
-        is_default=sub_data["Currency_Rate_Type_Default"]
+        is_default=sub_data["Currency_Rate_Type_Default"],
     )
 
 
 def workday_company_to_pydantic(data: dict) -> Company:
     # For some weird reason, the object that holds the data for a specific company is wrapped in a list
-    assert len(data["Company_Data"]) == 1, "Company_Data for each company should be singular"
+    assert (
+        len(data["Company_Data"]) == 1
+    ), "Company_Data for each company should be singular"
     cdata = data["Company_Data"][0]
 
-    currency_code = get_id_from_list(cdata["Accounting_Data"]["Currency_Reference"]["ID"], "Currency_ID")
+    currency_code = get_id_from_list(
+        cdata["Accounting_Data"]["Currency_Reference"]["ID"], "Currency_ID"
+    )
     # We'll expect that each company only has to care about taxation in one jurisdiction, and use the first object
     if "Tax_Status_Data" in cdata:
         country_code = get_id_from_list(
             cdata["Tax_Status_Data"][0]["Country_Reference"]["ID"],
-            "ISO_3166-1_Alpha-2_Code"
+            "ISO_3166-1_Alpha-2_Code",
         )
     else:
         country_code = None
@@ -63,10 +92,7 @@ def workday_company_to_pydantic(data: dict) -> Company:
         workday_id=cdata["Organization_Data"]["ID"],
         name=cdata["Organization_Data"]["Organization_Name"],
         country_code=country_code,
-        currency=Currency(
-            currency_code=currency_code,
-            workday_id=currency_code
-        )
+        currency=Currency(currency_code=currency_code) if currency_code else None,
     )
 
 
@@ -74,7 +100,7 @@ def workday_currency_to_pydantic(data: dict) -> Currency:
     return Currency(
         currency_code=data["Currency_ID"],
         description=data["Currency_Description"],
-        retired=data["Currency_Retired"]
+        retired=data["Currency_Retired"],
     )
 
 
@@ -83,11 +109,13 @@ def workday_tax_applicability_to_pydantic(data: dict) -> TaxApplicability:
     return TaxApplicability(
         workday_id=data["Tax_Applicability_ID"],
         code=data["Tax_Applicability_Code"],
-        taxable=data["Taxable"]
+        taxable=data["Taxable"],
     )
 
 
-def pydantic_conversion_rate_to_workday(rate: ConversionRate, client: WorkdayClient) -> sudsobject.Object:
+def pydantic_conversion_rate_to_workday(
+    rate: ConversionRate, client: WorkdayClient
+) -> sudsobject.Object:
     """
     Create a suds object from a Pydantic object. Used for creating/updating conversion rates in Workday
     """
@@ -119,5 +147,3 @@ def pydantic_conversion_rate_to_workday(rate: ConversionRate, client: WorkdayCli
     rate_data.Currency_Rate_Type_Reference = rate_type
 
     return rate_data
-
-

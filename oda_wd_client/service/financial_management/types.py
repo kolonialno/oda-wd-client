@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Literal
 
-from pydantic import Field, BaseModel
+from pydantic import BaseModel, Field
 
 from oda_wd_client.base.types import WorkdayReferenceBaseModel
 
@@ -33,16 +33,15 @@ class ConversionRateType(BaseModel):
 
 
 class Currency(WorkdayReferenceBaseModel):
-    workday_id: str = Field(max_length=3, alias='currency_code')
-    workday_id_type: Literal['Currency_ID'] = 'Currency_ID'
-    currency_code: str
-    description: str | None
+    workday_id: str = Field(max_length=3, alias="currency_code")
+    workday_id_type: Literal["Currency_ID"] = "Currency_ID"
+    description: str | None = None
     retired: bool = False
 
 
 class Company(WorkdayReferenceBaseModel):
     workday_id: str
-    workday_id_type: Literal['Company_Reference_ID'] = 'Company_Reference_ID'
+    workday_id_type: Literal["Company_Reference_ID"] = "Company_Reference_ID"
     name: str
-    currency: Currency
+    currency: Currency | None
     country_code: str | None = Field(max_length=2)
