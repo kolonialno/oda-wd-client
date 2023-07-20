@@ -31,7 +31,12 @@ class Staffing(WorkdayClient):
         extra_request_kwargs = {
             "Worker_Document_Response_Group": _response_group,
         }
-        docs = self._get_paginated(method, "Worker_Documents", per_page=25, extra_request_kwargs=extra_request_kwargs)
+        docs = self._get_paginated(
+            method,
+            "Worker_Documents",
+            per_page=25,
+            extra_request_kwargs=extra_request_kwargs,
+        )
         for doc in docs:
             if raw_objects:
                 yield doc

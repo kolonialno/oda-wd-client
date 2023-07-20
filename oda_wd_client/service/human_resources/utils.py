@@ -1,7 +1,6 @@
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 from oda_wd_client.service.human_resources.types import Worker
-
 
 WORKDAY_EMAIL_TYPES = {"WORK": "work", "HOME": "secondary"}
 
@@ -69,6 +68,9 @@ def workday_worker_to_pydantic(data: dict) -> Worker:
 
     # Parsing
     workday_id, employee_number = _parse_worker_refs(refs)
+    assert (
+        workday_id
+    ), "We require Workday ID for worker objects. Something is very wrong if we cannot look that up."
     emails = _parse_worker_emails(emails_data)
 
     return Worker(

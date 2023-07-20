@@ -1,8 +1,10 @@
 try:
     from structlog import getLogger
+
     _structlog = True
 except ImportError:
     from logging import getLogger
+
     _structlog = False
 
 

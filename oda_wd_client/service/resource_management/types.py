@@ -9,7 +9,6 @@ from oda_wd_client.base.utils import parse_workday_date
 from oda_wd_client.service.financial_management.types import Company, Currency
 
 
-
 class TaxApplicability(WorkdayReferenceBaseModel):
     workday_id: str
     workday_id_type: Literal["Tax_Applicability_ID"] = "Tax_Applicability_ID"
@@ -23,10 +22,9 @@ class TaxOption(WorkdayReferenceBaseModel):
     workday_id_type: Literal["Tax_Option_ID"] = "Tax_Option_ID"
 
 
-
 class Supplier(WorkdayReferenceBaseModel):
     workday_id: str
-    workday_id_type: Literal['Currency_ID'] = 'Supplier_ID'
+    workday_id_type: Literal["Supplier_ID"] = "Supplier_ID"
     reference_id: str | None
     name: str | None
     payment_terms: str | None
@@ -85,4 +83,6 @@ class SupplierInvoice(BaseModel):
 
     lines: list[SupplierInvoiceLine]
 
-    _normalize_dates = validator("invoice_date", "due_date", allow_reuse=True)(parse_workday_date)
+    _normalize_dates = validator("invoice_date", "due_date", allow_reuse=True)(
+        parse_workday_date
+    )

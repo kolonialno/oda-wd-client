@@ -1,9 +1,9 @@
 from typing import Any, Iterator
 from urllib.parse import urljoin
 
+from suds import client as suds_client
+from suds import sudsobject, wsse
 from suds.plugin import MessagePlugin
-from suds import client as suds_client, sudsobject, wsse
-
 
 from oda_wd_client.base.logging import log
 
@@ -31,36 +31,52 @@ _workday_clients: dict[str, suds_client.Client] = {}
 
 class WorkdayClient:
     """
-    An abstraction on top of the Zeep SOAP client to give us an interface into
+    An abstraction on top of the Suds SOAP client to give us an interface into
     Workday that's been instantiated with our own settings
 
     Relevant docs: https://community.workday.com/articles/628676
     """
 
     # Each SOAP service must be instantiated individually, and we need more than one...
-    _services: list[str] = ["Human_Resources", "Staffing", "Financial_Management", "Resource_Management"]
+    _services: list[str] = [
+        "Human_Resources",
+        "Staffing",
+        "Financial_Management",
+        "Resource_Management",
+    ]
 
-    service = None
+    service: str
 
-    def __init__(self, base_url: str, tenant_name: str, username: str, password: str, lazy_init: bool = True) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        tenant_name: str,
+        username: str,
+        password: str,
+        lazy_init: bool = True,
+    ) -> None:
         self._auth_base_url = base_url
         self._auth_tenant_name = tenant_name
         self._auth_username = username
         self._auth_password = password
+        # If we do lazy init, we only initialize each service when they're first needed, since there's an overhead
+        # with the init process
         if not lazy_init:
             for service in self._services:
                 self._init_service_client(service)
-        assert self.service, "`WorkdayClient` must be subclassed, and all subclasses must have `.service` set"
+        assert (
+            self.service
+        ), "`WorkdayClient` must be subclassed, and all subclasses must have `.service` set"
 
-    def _init_service_client(self, service):
+    def _init_service_client(self, service: str) -> None:
         if service not in _workday_clients:
             url = self._get_client_url(service)
-            _workday_clients[service]: suds_client.Client = self._setup_client(url)
+            _workday_clients[service] = self._setup_client(url)
 
-    def _get_client_url(self, service):
+    def _get_client_url(self, service: str) -> str:
         return urljoin(
             self._auth_base_url,
-            f'/ccx/service/{self._auth_tenant_name}/{service}/v38.1?wsdl',
+            f"/ccx/service/{self._auth_tenant_name}/{service}/v38.1?wsdl",
         )
 
     def _setup_client(self, url: str) -> suds_client.Client:
@@ -87,9 +103,7 @@ class WorkdayClient:
             self._init_service_client(service)
         return _workday_clients[service]
 
-    def _request(
-        self, method_name: str, *args, **kwargs
-    ) -> sudsobject.Object:
+    def _request(self, method_name: str, *args, **kwargs) -> sudsobject.Object:
         """
         Wrapper to call service methods on client instance
         """
@@ -102,13 +116,19 @@ class WorkdayClient:
         results_key: str,
         filters: dict[str, Any] | None = None,
         per_page: int = 100,
-        extra_request_kwargs: dict[str, Any] = None
+        extra_request_kwargs: dict[str, Any] | None = None,
     ) -> Iterator[sudsobject.Object]:
         extra_request_kwargs = extra_request_kwargs or {}
         page = 1
         max_page = None
         while max_page is None or page <= max_page:
-            log("info", f"Getting page {page} of {int(max_page) if max_page else 'unknown'}")
+            str_max_page = "Unknown"
+            if max_page:
+                str_max_page = int(max_page)
+            log(
+                "info",
+                f"Getting page {page} of {str_max_page}",
+            )
             _filter = self.factory("ns0:Response_FilterType")
 
             if filters:
@@ -117,14 +137,18 @@ class WorkdayClient:
 
             _filter.Page = page
             _filter.Count = per_page
-            response = self._request(method_name, Response_Filter=_filter, **extra_request_kwargs)
+            response = self._request(
+                method_name, Response_Filter=_filter, **extra_request_kwargs
+            )
 
-            # Response_Results / Reponse_Data might be wrapped in a list, if so, pick out the object
+            # Response_Results / Response_Data might be wrapped in a list, if so, pick out the object
             # Double check that they only have one item
             response_results = response.Response_Results
 
             if isinstance(response_results, list):
-                assert len(response_results) == 1, "If Response_Results is a list, it should only have one item"
+                assert (
+                    len(response_results) == 1
+                ), "If Response_Results is a list, it should only have one item"
                 response_results = response_results[0]
 
             # If we get no results, we won't have any response data attribute, so we need to do an early return
@@ -136,7 +160,9 @@ class WorkdayClient:
             response_data = response.Response_Data
 
             if isinstance(response_data, list):
-                assert len(response_data) == 1, "If Response_Data is a list, it should only have one item"
+                assert (
+                    len(response_data) == 1
+                ), "If Response_Data is a list, it should only have one item"
                 response_data = response_data[0]
 
             max_page = response_results.Total_Pages

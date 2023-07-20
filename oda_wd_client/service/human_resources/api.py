@@ -1,7 +1,7 @@
-from datetime import date, timedelta, datetime
-from typing import Iterator, Union
+from datetime import date
+from typing import Iterator
 
-from suds import sudsobject, WebFault
+from suds import WebFault, sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
 from oda_wd_client.base.tools import suds_to_dict
@@ -12,20 +12,33 @@ from oda_wd_client.service.human_resources.utils import workday_worker_to_pydant
 class HumanResources(WorkdayClient):
     service = "Human_Resources"
 
-    def get_workers(self, as_of_date: date | None = None) -> Iterator[sudsobject.Object]:
+    def get_workers(
+        self, as_of_date: date | None = None, return_suds_object: bool = False
+    ) -> Iterator[Worker | sudsobject.Object]:
         """
         Get all workers
+
+        Kwargs:
+            as_of_date: If supplied, the Workday response will represent data that is affective at $DATE. I.e. if you
+                supply a date that is two weeks in the future, the data will include all employees starting over the
+                next two weeks.
+            return_suds_object: If True, returns raw suds objects rather than a list of Worker instances
+
         """
         method = "Get_Workers"
         filters = {}
         if as_of_date:
-            filters["As_Of_Effective_Date"] = date.today() + timedelta(days=15)
+            filters["As_Of_Effective_Date"] = as_of_date
 
-        return self._get_paginated(method, "Worker", filters=filters)
+        results = self._get_paginated(method, "Worker", filters=filters)
+        for worker in results:
+            yield worker if return_suds_object else workday_worker_to_pydantic(
+                suds_to_dict(worker)
+            )
 
     def _get_worker_by_id(
         self, id_: str, id_type: str, return_object: bool = False
-    ) -> Union[Worker, sudsobject.Object]:
+    ) -> Worker | sudsobject.Object:
         """
         Lookup a given worker by ID
         """
@@ -67,5 +80,3 @@ class HumanResources(WorkdayClient):
         """
         method = "Change_Work_Contact_Information"
         return self._request(method, *args, **kwargs)
-
-
