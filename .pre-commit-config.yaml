@@ -1,0 +1,38 @@
+---
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: make lint-black
+        language: system
+        types: [python]
+        exclude: ^.*\b(migrations)\b.*$
+
+      - id: isort
+        name: isort
+        entry: make lint-isort
+        language: system
+        types: [python]
+
+      - id: flake8
+        name: flake8
+        entry: make lint-flake8
+        language: system
+        types: [python]
+        exclude: ^.*\b(migrations)\b.*$
+
+      - id: mypy
+        name: mypy
+        entry: make lint-mypy
+        language: system
+        types: [python]
+        exclude: ^.*\b(migrations)\b.*$
+
+      - id: yamllint
+        name: yamllint
+        entry: .venv/bin/yamllint
+        language: system
+        files: \.(yaml|yml)$
+        args:
+          - '--config-file=.yamllint'
