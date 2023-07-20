@@ -1,0 +1,41 @@
+---
+name: CI
+
+on: push
+
+env:
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "1.4.2"
+  POETRY_HOME: "/home/runner/.poetry"
+
+jobs:
+  lint:
+    name: Lint ${{ matrix.check }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [isort, mypy, black, flake8]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup project
+        uses: ./.github/actions/setup-project
+      - name: Run linter
+        run: make lint-${{ matrix.check }}
+
+  test:
+    name: Test pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup project
+        uses: ./.github/actions/setup-project
+      - name: Run pytest
+        run: make test
+        env:
+          TEST_COV_REP: term

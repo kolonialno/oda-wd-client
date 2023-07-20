@@ -45,3 +45,13 @@ fix-isort: .venv ; $(info $(M) running isort...) @ ## Run isort fixer
 .PHONY: fix-black
 fix-black: .venv ; $(info $(M) running black...) @ ## Run black fixer
 	$Q $(POETRY) run black $(PACKAGE)
+
+.PHONY: test
+test: .venv ; $(info $(M) running tests...) @ ## Run tests
+	# Placeholder for our testing
+	# TODO: Setup pytest and some tests
+	$Q $(POETRY) run python -c "import sys; sys.exit(0)"
+
+.PHONY: release
+release: lint test ; $(info $(M) running tests...) @ ## Release to PYPI
+	$Q $(POETRY) publish --build --username=__token__ --password=$(PYPI_TOKEN)
