@@ -10,6 +10,7 @@ from oda_wd_client.service.financial_management.types import Company, Currency
 
 
 class TaxApplicability(WorkdayReferenceBaseModel):
+    _class_name = "Tax_ApplicabilityObject"
     workday_id: str
     workday_id_type: Literal["Tax_Applicability_ID"] = "Tax_Applicability_ID"
     # Code is human-readable text but not critical, so we default to empty string
@@ -18,11 +19,13 @@ class TaxApplicability(WorkdayReferenceBaseModel):
 
 
 class TaxOption(WorkdayReferenceBaseModel):
+    _class_name = "Tax_OptionObject"
     workday_id: str
     workday_id_type: Literal["Tax_Option_ID"] = "Tax_Option_ID"
 
 
 class Supplier(WorkdayReferenceBaseModel):
+    _class_name = "SupplierObject"
     workday_id: str
     workday_id_type: Literal["Supplier_ID"] = "Supplier_ID"
     reference_id: str | None
