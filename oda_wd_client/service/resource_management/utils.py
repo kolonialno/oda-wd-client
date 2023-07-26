@@ -6,7 +6,6 @@ from oda_wd_client.service.resource_management.types import (
     Supplier,
     SupplierInvoice,
     SupplierInvoiceLine,
-    TaxApplicability,
 )
 
 # Mapping the Workday tax ID types to canonical names used by our model
@@ -130,23 +129,35 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
     )
 
 
-def _get_wd_invoice_lines_from_invoice(client, lines: list[SupplierInvoiceLine]):
+def _get_wd_invoice_lines_from_invoice(
+    client, lines: list[SupplierInvoiceLine]
+) -> list[sudsobject.Object]:
     returned_lines = []
 
     for line in lines:
         wd_line = client.factory("ns0:Supplier_Invoice_Line_Replacement_DataType")
-        # wd_tax = client.factory("ns0:Tax_Rate_Options_DataType")
         wd_line.Supplier_Invoice_Line_ID = line.order
         wd_line.Item_Description = line.description
         wd_line.Extended_Amount = line.amount
+        wd_line.Spend_Category_Reference = line.spend_category.wd_object(client)
 
-        # wd_line.Tax_Rate_Options_Data = wd_tax
-        test_applicability = TaxApplicability(
-            workday_id="NOR_Domestic_Purchase_of_Goods_and_Services"
+        # Tax options
+        wd_tax = client.factory("ns0:Tax_Rate_Options_DataType")
+        tax_opts = line.tax_rate_options_data
+        wd_tax.Tax_Rate_1_Reference = tax_opts.tax_rate.wd_object(client)
+        wd_tax.Tax_Recoverability_1_Reference = tax_opts.tax_recoverability.wd_object(
+            client
         )
-        wd_line.Tax_Applicability_Reference = test_applicability.wd_object(
-            client, "Tax_ApplicabilityObject"
-        )
+        wd_tax.Tax_Option_1_Reference = tax_opts.tax_option.wd_object(client)
+        wd_line.Tax_Rate_Options_Data = wd_tax
+
+        # Tax code
+        wd_line.Tax_Applicability_Reference = line.tax_applicability.wd_object(client)
+        wd_line.Tax_Code_Reference = line.tax_code.wd_object(client)
+
+        # Worktags
+        wd_line.Worktags_Reference.append(line.cost_center.wd_object(client))
+
         returned_lines.append(wd_line)
 
     return returned_lines
@@ -167,20 +178,14 @@ def pydantic_supplier_invoice_to_workday(
     invoice_data.Locked_in_Workday = True
 
     invoice_data.Invoice_Number = invoice.invoice_number
-    invoice_data.Company_Reference = invoice.company.wd_object(client, "CompanyObject")
-    invoice_data.Currency_Reference = invoice.currency.wd_object(
-        client, "CurrencyObject"
-    )
-    invoice_data.Supplier_Reference = invoice.supplier.wd_object(
-        client, "SupplierObject"
-    )
-    invoice_data.Default_Tax_Option_Reference = invoice.tax_option.wd_object(
-        client, "Tax_OptionObject"
-    )
+    invoice_data.Company_Reference = invoice.company.wd_object(client)
+    invoice_data.Currency_Reference = invoice.currency.wd_object(client)
+    invoice_data.Supplier_Reference = invoice.supplier.wd_object(client)
+    invoice_data.Default_Tax_Option_Reference = invoice.tax_option.wd_object(client)
     invoice_data.Invoice_Date = str(invoice.invoice_date)
     invoice_data.Due_Date_Override = str(invoice.due_date)
     invoice_data.Control_Amount_Total = invoice.total_amount
-    invoice_data.Tax_Amount = invoice.tax_amount
+    # invoice_data.Tax_Amount = invoice.tax_amount
     # invoice_data.Attachment_Data = _get_wd_attachment_data_from_invoice(invoice)
     invoice_data.Invoice_Line_Replacement_Data = _get_wd_invoice_lines_from_invoice(
         client, invoice.lines
