@@ -3,10 +3,12 @@ from suds import sudsobject
 from oda_wd_client.base.api import WorkdayClient
 from oda_wd_client.base.utils import get_id_from_list
 from oda_wd_client.service.financial_management.types import (
+    AccountingJournalData,
     Company,
     ConversionRate,
     ConversionRateType,
     Currency,
+    JournalEntryLineData,
 )
 from oda_wd_client.service.resource_management.types import TaxApplicability
 
@@ -147,3 +149,54 @@ def pydantic_conversion_rate_to_workday(
     rate_data.Currency_Rate_Type_Reference = rate_type
 
     return rate_data
+
+
+def _pydantic_journal_entry_line_to_workday(
+    journal_line: JournalEntryLineData, client: WorkdayClient
+) -> sudsobject.Object:
+    wd_journal_entry_line = client.factory("ns0:Journal_Entry_Line_DataType")
+
+    wd_journal_entry_line.Ledger_Account_Reference = (
+        journal_line.ledger_account.wd_object(client)
+    )
+
+    if journal_line.spend_category:
+        spend_category = journal_line.spend_category.wd_object(client)
+        wd_journal_entry_line.Worktags_Reference.append(spend_category)
+
+    if journal_line.cost_center:
+        cost_center = journal_line.cost_center.wd_object(client)
+        wd_journal_entry_line.Worktags_Reference.append(cost_center)
+
+    wd_journal_entry_line.Debit_Amount = journal_line.debit
+    wd_journal_entry_line.Credit_Amount = journal_line.credit
+
+    return wd_journal_entry_line
+
+
+def pydantic_accounting_journal_to_workday(
+    journal: AccountingJournalData, client: WorkdayClient
+) -> sudsobject.Object:
+    """
+    Create a suds object from a Pydantic object. Used for submitting accounting journals to Workday
+    """
+    # create container object and add data
+    wd_accounting_journal = client.factory("ns0:Accounting_Journal_DataType")
+    wd_accounting_journal.Accounting_Date = journal.accounting_date
+    wd_accounting_journal.Accounting_Journal_ID = journal.accounting_journal_id
+    wd_accounting_journal.Journal_Source_Reference = journal.journal_source.wd_object(
+        client
+    )
+    if journal.company.currency:
+        wd_accounting_journal.Currency_Reference = journal.company.currency.wd_object(
+            client
+        )
+    wd_accounting_journal.Company_Reference = journal.company.wd_object(client)
+    wd_accounting_journal.Ledger_Type_Reference = journal.ledger_type.wd_object(client)
+    for journal_entry_line_data in journal.journal_entry_line_data:
+        wd_data = _pydantic_journal_entry_line_to_workday(
+            journal_entry_line_data, client
+        )
+        wd_accounting_journal.Journal_Entry_Line_Replacement_Data.append(wd_data)
+
+    return wd_accounting_journal

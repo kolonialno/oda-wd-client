@@ -6,7 +6,15 @@ from pydantic import BaseModel, Field, validator
 
 from oda_wd_client.base.types import WorkdayReferenceBaseModel
 from oda_wd_client.base.utils import parse_workday_date
-from oda_wd_client.service.financial_management.types import Company, Currency
+from oda_wd_client.service.financial_management.types import (
+    Company,
+    CostCenter,
+    Currency,
+    SpendCategory,
+)
+
+# All public imports should be done through oda_wd_client.types.resource_management
+__all__: list = []
 
 
 class TaxApplicability(WorkdayReferenceBaseModel):
@@ -84,22 +92,12 @@ class TaxRecoverability(WorkdayReferenceBaseModel):
     ] = "Tax_Recoverability_Object_ID"
 
 
-class SpendCategory(WorkdayReferenceBaseModel):
-    _class_name = "Spend_CategoryObject"
-    workday_id_type: Literal["Spend_Category_ID"] = "Spend_Category_ID"
-
-
 class TaxRateOptionsData(BaseModel):
     tax_rate: TaxRate
     tax_recoverability: TaxRecoverability = TaxRecoverability(
         workday_id="Fully_Recoverable"
     )
     tax_option: TaxOption = TaxOption(workday_id="CALC_TAX_DUE")
-
-
-class CostCenter(WorkdayReferenceBaseModel):
-    _class_name = "Accounting_WorktagObject"
-    workday_id_type: Literal["Cost_Center_Reference_ID"] = "Cost_Center_Reference_ID"
 
 
 class SupplierInvoiceLine(BaseModel):
