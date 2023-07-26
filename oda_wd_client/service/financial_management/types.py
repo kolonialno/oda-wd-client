@@ -33,6 +33,7 @@ class ConversionRateType(BaseModel):
 
 
 class Currency(WorkdayReferenceBaseModel):
+    _class_name = "CurrencyObject"
     workday_id: str = Field(max_length=3, alias="currency_code")
     workday_id_type: Literal["Currency_ID"] = "Currency_ID"
     description: str | None = None
@@ -40,6 +41,7 @@ class Currency(WorkdayReferenceBaseModel):
 
 
 class Company(WorkdayReferenceBaseModel):
+    _class_name = "CompanyObject"
     workday_id: str
     workday_id_type: Literal["Company_Reference_ID"] = "Company_Reference_ID"
     name: str

@@ -15,11 +15,19 @@ class WorkdayReferenceBaseModel(BaseModel):
     workday_parent_id: str | None = None
     workday_parent_type: str | None = None
 
+    # This is the name of the class in Workday. Usually ends with "Object" (i.e. "SupplierObject")
+    _class_name: str | None = None
+
     def wd_object(
         self,
         client,
-        class_name: str,
+        class_name: str | None = None,
     ) -> sudsobject.Object:
+        class_name = class_name or self._class_name
+        assert (
+            class_name
+        ), "WD Class name must be supplied on class or call to wd_object"
+
         ref_obj = client.factory(f"ns0:{class_name}Type")
         id_obj = client.factory(f"ns0:{class_name}IDType")
         id_obj.value = self.workday_id
