@@ -7,6 +7,10 @@ __all__: list = []
 
 
 class Document(BaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Staffing/v40.2/Put_Worker_Document.html#Worker_Document_DataType  # noqa
+    """
+
     class WorkdayCategory(str, Enum):
         employee_contract = "EMPLOYEE_CONTRACT"
         student_collections = "STUDENT_COLLECTIONS"

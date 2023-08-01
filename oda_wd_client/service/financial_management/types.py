@@ -12,6 +12,10 @@ __all__: list = []
 
 
 class ConversionRate(BaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Put_Currency_Conversion_Rate.html#Currency_Conversion_Rate_DataType  # noqa
+    """
+
     class RateTypeID(str, Enum):
         # Text reference to Conversion_Rate_Type in Workday
         current = "Current"
@@ -30,6 +34,10 @@ class ConversionRate(BaseModel):
 
 
 class ConversionRateType(BaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Put_Currency_Conversion_Rate.html#Currency_Rate_TypeObjectType  # noqa
+    """
+
     workday_id: str
     text_id: str | None
     description: str
@@ -37,6 +45,10 @@ class ConversionRateType(BaseModel):
 
 
 class Currency(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/GetAll_Currencies.html#Currency_DataType  # noqa
+    """
+
     _class_name = "CurrencyObject"
     workday_id: str = Field(max_length=3, alias="currency_code")
     workday_id_type: Literal["Currency_ID"] = "Currency_ID"
@@ -45,15 +57,23 @@ class Currency(WorkdayReferenceBaseModel):
 
 
 class Company(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Get_Workday_Companies.html#Company_WWS_DataType  # noqa
+    """
+
     _class_name = "CompanyObject"
     workday_id: str
     workday_id_type: Literal["Company_Reference_ID"] = "Company_Reference_ID"
-    name: str
+    name: str | None
     currency: Currency | None
     country_code: str | None = Field(max_length=2)
 
 
 class JournalSource(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Journal_SourceObjectType  # noqa
+    """
+
     class JournalSourceID(str, Enum):
         # TODO: Get a new value added to workday ("Snowflake_Integration"") (Linear: DIP-1175)
         spreadsheet_upload = "Spreadsheet_Upload"
@@ -65,6 +85,8 @@ class JournalSource(WorkdayReferenceBaseModel):
 class LedgerType(WorkdayReferenceBaseModel):
     """
     Holds the type of ledger that we want to submit the journal to - enum values are from Workday.
+
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Ledger_TypeObjectType  # noqa
     """
 
     class LedgerTypeID(str, Enum):
@@ -76,11 +98,23 @@ class LedgerType(WorkdayReferenceBaseModel):
 
 
 class SpendCategory(WorkdayReferenceBaseModel):
+    """
+    Worktag? Seems to be dedicated field under Resource_Management at least
+
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Spend_CategoryObjectType  # noqa
+    """
+
     _class_name = "Spend_CategoryObject"
     workday_id_type: Literal["Spend_Category_ID"] = "Spend_Category_ID"
 
 
 class CostCenter(WorkdayReferenceBaseModel):
+    """
+    Worktag
+
+    Reference:  https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Audited_Accounting_WorktagObjectType  # noqa
+    """
+
     _class_name = "Accounting_WorktagObject"
     workday_id_type: Literal["Cost_Center_Reference_ID"] = "Cost_Center_Reference_ID"
 
@@ -88,6 +122,8 @@ class CostCenter(WorkdayReferenceBaseModel):
 class LedgerAccount(WorkdayReferenceBaseModel):
     """
     Reference to a ledger account in Workday.
+
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Ledger_AccountObjectType  # noqa
     """
 
     _class_name = "Ledger_AccountObject"
@@ -100,6 +136,8 @@ class JournalEntryLineData(BaseModel):
     """
     Represents a single line in a journal entry,
     with enough information to create a journal entry in Workday.
+
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Journal_Entry_Line_DataType  # noqa
     """
 
     ledger_account: LedgerAccount
@@ -113,6 +151,8 @@ class AccountingJournalData(BaseModel):
     """
     An accounting journal to be submitted to Workday.
     It's valid for a single company.
+
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Accounting_Journal_DataType  # noqa
     """
 
     accounting_date: date

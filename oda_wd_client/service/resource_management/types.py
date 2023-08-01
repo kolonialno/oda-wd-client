@@ -18,6 +18,10 @@ __all__: list = []
 
 
 class TaxApplicability(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Tax_ApplicabilityObjectType  # noqa
+    """
+
     _class_name = "Tax_ApplicabilityObject"
     workday_id: str
     workday_id_type: Literal["Tax_Applicability_ID"] = "Tax_Applicability_ID"
@@ -27,18 +31,30 @@ class TaxApplicability(WorkdayReferenceBaseModel):
 
 
 class TaxOption(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Tax_OptionObjectType  # noqa
+    """
+
     _class_name = "Tax_OptionObject"
     workday_id: str
     workday_id_type: Literal["Tax_Option_ID"] = "Tax_Option_ID"
 
 
 class TaxCode(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Tax_CodeObjectType  # noqa
+    """
+
     _class_name = "Tax_CodeObject"
     workday_id: str
     workday_id_type: Literal["Tax_Code_ID"] = "Tax_Code_ID"
 
 
 class Supplier(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Get_Suppliers.html#SupplierType  # noqa
+    """
+
     _class_name = "SupplierObject"
     workday_id: str
     workday_id_type: Literal["Supplier_ID"] = "Supplier_ID"
@@ -81,11 +97,19 @@ class Supplier(WorkdayReferenceBaseModel):
 
 
 class TaxRate(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Tax_RateObjectType  # noqa
+    """
+
     _class_name = "Tax_RateObject"
     workday_id_type: Literal["Tax_Rate_ID"] = "Tax_Rate_ID"
 
 
 class TaxRecoverability(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Tax_RecoverabilityObjectType  # noqa
+    """
+
     _class_name = "Tax_RecoverabilityObject"
     workday_id_type: Literal[
         "Tax_Recoverability_Object_ID"
@@ -93,6 +117,13 @@ class TaxRecoverability(WorkdayReferenceBaseModel):
 
 
 class TaxRateOptionsData(BaseModel):
+
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Tax_Rate_Options_DataType  # noqa
+
+    With some (in)sane defaults
+    """
+
     tax_rate: TaxRate
     tax_recoverability: TaxRecoverability = TaxRecoverability(
         workday_id="Fully_Recoverable"
@@ -101,6 +132,10 @@ class TaxRateOptionsData(BaseModel):
 
 
 class SupplierInvoiceLine(BaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_Line_Replacement_DataType  # noqa
+    """
+
     order: int | None
     description: str | None
     tax_rate_options_data: TaxRateOptionsData
