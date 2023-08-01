@@ -7,6 +7,10 @@ __all__: list = []
 
 
 class Worker(BaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Human_Resources/v40.2/Get_Workers.html#Worker_DataType   # noqa
+    """
+
     workday_id: str
     employee_number: Optional[str]
     name: str
