@@ -12,6 +12,7 @@ pydantic = ">=1.10.0,<2.0"
 suds-py3 = "^1.4.5.0"
 pre-commit = "^3.3.3"
 yamllint = "^1.32.0"
+python-magic = "^0.4.27"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^7.30.1"
