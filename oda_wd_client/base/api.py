@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from typing import Any, Iterator
 from urllib.parse import urljoin
 
@@ -22,6 +24,35 @@ class SudsHax(MessagePlugin):
                     recurse(child)
 
         recurse(root)
+
+
+class SudsLog(MessagePlugin):
+    """
+    Write all responses and requests to files during development
+
+    Inspired by https://www.guguweb.com/2019/12/11/how-to-log-raw-xml-requests-and-responses-in-suds/
+    """
+
+    def __init__(self, location):
+        self.location = location
+        if not os.path.exists(location):
+            os.makedirs(location)
+
+    def pretty_log(self, xml_content, direction):
+        try:
+            file_path = os.path.join(
+                self.location, f"suds-log-{datetime.now()}-{direction}.xml"
+            )
+            with open(file_path, "wb") as f:
+                f.write(xml_content)
+        except Exception as e:
+            log("warning", f"Cannot log XML ({e})")
+
+    def sending(self, context):
+        self.pretty_log(context.envelope, "send")
+
+    def received(self, context):
+        self.pretty_log(context.reply, "receive")
 
 
 # Using a singleton to hold all of our client instances to avoid re-initiation during app lifecycle. Changing the
@@ -54,11 +85,13 @@ class WorkdayClient:
         username: str,
         password: str,
         lazy_init: bool = True,
+        log_location: str | None = None,
     ) -> None:
         self._auth_base_url = base_url
         self._auth_tenant_name = tenant_name
         self._auth_username = username
         self._auth_password = password
+        self._log_location = log_location
         # If we do lazy init, we only initialize each service when they're first needed, since there's an overhead
         # with the init process
         if not lazy_init:
@@ -83,7 +116,10 @@ class WorkdayClient:
         """
         Create client instance with secrets and config
         """
-        client = suds_client.Client(url, plugins=[SudsHax()])
+        plugins = [SudsHax()]
+        if self._log_location:
+            plugins.append(SudsLog(self._log_location))
+        client = suds_client.Client(url, plugins=plugins)
         security = wsse.Security()
         token = wsse.UsernameToken(
             f"{self._auth_username}@{self._auth_tenant_name}",
