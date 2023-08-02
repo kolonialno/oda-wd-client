@@ -74,6 +74,8 @@ class JournalSource(WorkdayReferenceBaseModel):
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Journal_SourceObjectType  # noqa
     """
 
+    workday_id: str
+
     class JournalSourceID(str, Enum):
         # TODO: Get a new value added to workday ("Snowflake_Integration"") (Linear: DIP-1175)
         spreadsheet_upload = "Spreadsheet_Upload"
@@ -88,6 +90,8 @@ class LedgerType(WorkdayReferenceBaseModel):
 
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Ledger_TypeObjectType  # noqa
     """
+
+    workday_id: str
 
     class LedgerTypeID(str, Enum):
         actuals = "Actuals"
@@ -105,6 +109,7 @@ class SpendCategory(WorkdayReferenceBaseModel):
     """
 
     _class_name = "Spend_CategoryObject"
+    workday_id: str
     workday_id_type: Literal["Spend_Category_ID"] = "Spend_Category_ID"
 
 
@@ -116,6 +121,7 @@ class CostCenter(WorkdayReferenceBaseModel):
     """
 
     _class_name = "Accounting_WorktagObject"
+    workday_id: str
     workday_id_type: Literal["Cost_Center_Reference_ID"] = "Cost_Center_Reference_ID"
 
 
@@ -127,6 +133,7 @@ class LedgerAccount(WorkdayReferenceBaseModel):
     """
 
     _class_name = "Ledger_AccountObject"
+    workday_id: str
     workday_id_type: Literal["Ledger_Account_ID"] = "Ledger_Account_ID"
     workday_parent_id: str
     workday_parent_type: Literal["Account_Set_ID"] = "Account_Set_ID"
