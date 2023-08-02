@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, validator
 
-from oda_wd_client.base.types import WorkdayReferenceBaseModel
+from oda_wd_client.base.types import File, WorkdayReferenceBaseModel
 from oda_wd_client.base.utils import parse_workday_date
 from oda_wd_client.service.financial_management.types import (
     Company,
@@ -133,22 +133,39 @@ class TaxRateOptionsData(BaseModel):
     tax_option: TaxOption = TaxOption(workday_id="CALC_TAX_DUE")
 
 
+class FinancialAttachmentData(File):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Financials_Attachment_DataType  # noqa
+    """
+
+    field_type = "Financials_Attachment_DataType"
+
+
 class SupplierInvoiceLine(BaseModel):
     """
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_Line_Replacement_DataType  # noqa
     """
 
     order: int | None
-    description: str | None
-    tax_rate_options_data: TaxRateOptionsData
-    tax_applicability: TaxApplicability
-    tax_code: TaxCode
-    spend_category: SpendCategory
-    cost_center: CostCenter
-    amount: Decimal = Field(max_digits=18, decimal_places=3)
+    description: str = "-No description-"
+    tax_rate_options_data: TaxRateOptionsData | None
+    tax_applicability: TaxApplicability | None
+    tax_code: TaxCode | None
+    spend_category: SpendCategory | None
+    cost_center: CostCenter | None
+    gross_amount: Decimal = Field(max_digits=18, decimal_places=3)
+    tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
+    total_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
 
 
-class SupplierInvoice(BaseModel):
+class SupplierInvoice(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_DataType  # noqa
+    """
+
+    workday_id_type: Literal[
+        "Supplier_invoice_Reference_ID"
+    ] = "Supplier_invoice_Reference_ID"
     invoice_number: str
     company: Company
     currency: Currency
@@ -157,9 +174,10 @@ class SupplierInvoice(BaseModel):
     due_date: date
     total_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
-    tax_option: TaxOption
+    tax_option: TaxOption | None
 
     lines: list[SupplierInvoiceLine]
+    attachments: list[FinancialAttachmentData] | None
 
     _normalize_dates = validator("invoice_date", "due_date", allow_reuse=True)(
         parse_workday_date
