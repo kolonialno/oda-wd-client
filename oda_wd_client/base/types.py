@@ -19,7 +19,7 @@ class WorkdayReferenceBaseModel(BaseModel):
     workday_id and workday_id_type.
     """
 
-    workday_id: str
+    workday_id: str | None
     workday_id_type: str
     workday_parent_id: str | None = None
     workday_parent_type: str | None = None

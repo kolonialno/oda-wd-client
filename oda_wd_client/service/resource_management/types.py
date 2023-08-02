@@ -102,6 +102,7 @@ class TaxRate(WorkdayReferenceBaseModel):
     """
 
     _class_name = "Tax_RateObject"
+    workday_id: str
     workday_id_type: Literal["Tax_Rate_ID"] = "Tax_Rate_ID"
 
 
@@ -111,6 +112,7 @@ class TaxRecoverability(WorkdayReferenceBaseModel):
     """
 
     _class_name = "Tax_RecoverabilityObject"
+    workday_id: str
     workday_id_type: Literal[
         "Tax_Recoverability_Object_ID"
     ] = "Tax_Recoverability_Object_ID"
