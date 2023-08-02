@@ -7,6 +7,7 @@ from oda_wd_client.base.tools import suds_to_dict
 from oda_wd_client.service.resource_management.types import Supplier, SupplierInvoice
 from oda_wd_client.service.resource_management.utils import (
     pydantic_supplier_invoice_to_workday,
+    workday_supplier_invoice_to_pydantic,
     workday_supplier_to_pydantic,
 )
 
@@ -29,9 +30,9 @@ class ResourceManagement(WorkdayClient):
     ) -> Iterator[sudsobject.Object | SupplierInvoice]:
         method = "Get_Supplier_Invoices"
         results = self._get_paginated(method, "Supplier_Invoice")
-        for supplier in results:
-            yield supplier if return_suds_object else workday_supplier_to_pydantic(
-                suds_to_dict(supplier)
+        for invoice in results:
+            yield invoice if return_suds_object else workday_supplier_invoice_to_pydantic(
+                suds_to_dict(invoice)
             )
 
     def submit_supplier_invoice(self, invoice: SupplierInvoice) -> sudsobject.Object:
@@ -43,3 +44,18 @@ class ResourceManagement(WorkdayClient):
         return self._request(
             method, Supplier_Invoice_Data=request.Supplier_Invoice_Data
         )
+
+    def cancel_supplier_invoice(self, invoice_ref_id: str):
+        """
+        Cancel an invoice in Workday
+
+        :param invoice_ref_id:
+        :return:
+        """
+        method = "Cancel_Supplier_Invoice"
+        ref_obj = self.factory("ns0:Supplier_InvoiceObjectType")
+        id_obj = self.factory("ns0:Supplier_InvoiceObjectIDType")
+        id_obj._type = "Supplier_Invoice_Reference_ID"
+        id_obj.value = invoice_ref_id
+        ref_obj.ID.append(id_obj)
+        return self._request(method, Supplier_Invoice_Reference=ref_obj)
