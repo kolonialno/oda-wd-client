@@ -7,8 +7,11 @@ from oda_wd_client.service.financial_management.types import (
     Company,
     ConversionRate,
     ConversionRateType,
+    CostCenterWorktag,
     Currency,
     JournalEntryLineData,
+    ProjectWorktag,
+    SpendCategory,
 )
 from oda_wd_client.service.resource_management.types import TaxApplicability
 
@@ -112,6 +115,43 @@ def workday_tax_applicability_to_pydantic(data: dict) -> TaxApplicability:
         workday_id=data["Tax_Applicability_ID"],
         code=data["Tax_Applicability_Code"],
         taxable=data["Taxable"],
+    )
+
+
+def workday_cost_center_to_pydantic(data: dict) -> CostCenterWorktag:
+    cost_center_id = get_id_from_list(
+        data["Cost_Center_Reference"]["ID"], "Cost_Center_Reference_ID"
+    )
+    assert cost_center_id, "No ID of cost center found, this is required"
+    return CostCenterWorktag(
+        workday_id=cost_center_id,
+        name=data["Cost_Center_Data"]["Organization_Data"]["Organization_Name"],
+    )
+
+
+def workday_spend_category_to_pydantic(data: dict) -> SpendCategory:
+    cat_data = data["Resource_Category_Data"]
+    ref_id = get_id_from_list(
+        data["Resource_Category_Reference"]["ID"], "Spend_Category_ID"
+    )
+    resource_id = cat_data["Resource_Category_ID"]
+    assert (
+        ref_id == resource_id
+    ), "The Resource_Category_ID and Spend_Category_ID are expected to be equal"
+
+    return SpendCategory(
+        workday_id=ref_id,
+        name=cat_data["Resource_Category_Name"],
+        inactive=cat_data["Inactive"],
+    )
+
+
+def workday_project_to_pydantic(data: dict) -> ProjectWorktag:
+    proj_data = data["Basic_Project_Data"]
+    return ProjectWorktag(
+        workday_id=proj_data["Project_ID"],
+        name=proj_data["Project_Name"],
+        inactive=proj_data["Inactive"],
     )
 
 

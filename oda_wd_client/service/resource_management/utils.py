@@ -6,10 +6,11 @@ from oda_wd_client.base.api import WorkdayClient
 from oda_wd_client.base.utils import get_id_from_list
 from oda_wd_client.service.financial_management.types import (
     Company,
-    CostCenter,
+    CostCenterWorktag,
     Currency,
     SpendCategory,
 )
+from oda_wd_client.service.resource_management.exceptions import NoSupplierID
 from oda_wd_client.service.resource_management.types import (
     Supplier,
     SupplierInvoice,
@@ -115,7 +116,10 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
     """
     Parse a suds dict representing a supplier from Workday and return a Supplier pydantic instance
     """
-    sup_data = data["Supplier"]
+    sup_data = data["Supplier_Data"]
+    sup_id = sup_data.get("Supplier_ID", None)
+    if not sup_id:
+        raise NoSupplierID()
     tax_id_data = _get_tax_id_from_dict(sup_data.get("Tax_ID_Widget_Data", {}))
     account_data = _get_account_data_from_dict(
         sup_data.get("Settlement_Account_Widget_Data", {})
@@ -126,7 +130,7 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
     currency_ref = sup_data.get("Currency_Reference", None)
 
     return Supplier(
-        workday_id=sup_data.get("Supplier_ID", None),
+        workday_id=sup_id,
         reference_id=sup_data.get("Supplier_Reference_ID", None),
         name=sup_data["Supplier_Name"],
         payment_terms=get_id_from_list(
@@ -148,7 +152,7 @@ def _workday_invoice_line_to_pydantic(data: dict, order: int) -> SupplierInvoice
     # Worktags is a list of tags, each with their own list of IDs
     worktags = data["Worktags_Reference"]
     for tag in worktags:
-        _cost_center = CostCenter.from_id_list(tag["ID"])
+        _cost_center = CostCenterWorktag.from_id_list(tag["ID"])
         if _cost_center:
             cost_center = _cost_center
 
