@@ -3,12 +3,13 @@ from oda_wd_client.service.financial_management.types import (
     Company,
     ConversionRate,
     ConversionRateType,
-    CostCenter,
+    CostCenterWorktag,
     Currency,
     JournalEntryLineData,
     JournalSource,
     LedgerAccount,
     LedgerType,
+    ProjectWorktag,
     SpendCategory,
 )
 
@@ -20,8 +21,9 @@ __all__ = [
     "JournalSource",
     "LedgerType",
     "SpendCategory",
-    "CostCenter",
+    "CostCenterWorktag",
     "LedgerAccount",
     "JournalEntryLineData",
     "AccountingJournalData",
+    "ProjectWorktag",
 ]

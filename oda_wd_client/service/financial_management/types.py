@@ -111,11 +111,14 @@ class SpendCategory(WorkdayReferenceBaseModel):
     _class_name = "Spend_CategoryObject"
     workday_id: str
     workday_id_type: Literal["Spend_Category_ID"] = "Spend_Category_ID"
+    name: str | None
+    inactive: bool = False
 
 
-class CostCenter(WorkdayReferenceBaseModel):
+class CostCenterWorktag(WorkdayReferenceBaseModel):
     """
-    Worktag
+    Reference object used as worktag in accounting. Only holds data needed for use as reference, ant not secondary
+    data for cost center objects in Workday.
 
     Reference:  https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Audited_Accounting_WorktagObjectType  # noqa
     """
@@ -123,6 +126,22 @@ class CostCenter(WorkdayReferenceBaseModel):
     _class_name = "Accounting_WorktagObject"
     workday_id: str
     workday_id_type: Literal["Cost_Center_Reference_ID"] = "Cost_Center_Reference_ID"
+    name: str | None
+
+
+class ProjectWorktag(WorkdayReferenceBaseModel):
+    """
+    Reference object used as worktag in accounting. Only holds data needed for use as reference, ant not secondary
+    data for cost center objects in Workday.
+
+    Reference:  https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/Submit_Accounting_Journal.html#Audited_Accounting_WorktagObjectType  # noqa
+    """
+
+    _class_name = "Accounting_WorktagObject"
+    workday_id: str
+    workday_id_type: Literal["Project_ID"] = "Project_ID"
+    name: str | None
+    inactive: bool = False
 
 
 class LedgerAccount(WorkdayReferenceBaseModel):
@@ -150,7 +169,7 @@ class JournalEntryLineData(BaseModel):
     ledger_account: LedgerAccount
     debit: Decimal | None = None
     credit: Decimal | None = None
-    cost_center: CostCenter | None = None
+    cost_center: CostCenterWorktag | None = None
     spend_category: SpendCategory | None = None
 
 

@@ -9,7 +9,10 @@ from oda_wd_client.service.financial_management.types import (
     Company,
     ConversionRate,
     ConversionRateType,
+    CostCenterWorktag,
     Currency,
+    ProjectWorktag,
+    SpendCategory,
 )
 from oda_wd_client.service.financial_management.utils import (
     pydantic_accounting_journal_to_workday,
@@ -17,7 +20,10 @@ from oda_wd_client.service.financial_management.utils import (
     workday_company_to_pydantic,
     workday_conversion_rate_to_pydantic,
     workday_conversion_rate_type_to_pydantic,
+    workday_cost_center_to_pydantic,
     workday_currency_to_pydantic,
+    workday_project_to_pydantic,
+    workday_spend_category_to_pydantic,
     workday_tax_applicability_to_pydantic,
 )
 
@@ -53,11 +59,13 @@ class FinancialManagement(WorkdayClient):
 
     def get_cost_centers(
         self, return_suds_object=False
-    ) -> Iterator[sudsobject.Object | ConversionRateType]:
+    ) -> Iterator[sudsobject.Object | CostCenterWorktag]:
         method = "Get_Cost_Centers"
         results = self._get_paginated(method, "Cost_Center")
         for cost_center in results:
-            yield cost_center if return_suds_object else suds_to_dict(cost_center)
+            yield cost_center if return_suds_object else workday_cost_center_to_pydantic(
+                suds_to_dict(cost_center)
+            )
 
     def get_companies(
         self, return_suds_object=False
@@ -78,6 +86,26 @@ class FinancialManagement(WorkdayClient):
         for currency in results:
             yield currency if return_suds_object else workday_currency_to_pydantic(
                 suds_to_dict(currency)
+            )
+
+    def get_projects(
+        self, return_suds_object: bool = False
+    ) -> Iterator[sudsobject.Object | ProjectWorktag]:
+        method = "Get_Basic_Projects"
+        results = self._get_paginated(method, "Basic_Project")
+        for project in results:
+            yield project if return_suds_object else workday_project_to_pydantic(
+                suds_to_dict(project)
+            )
+
+    def get_spend_categories(
+        self, return_suds_object: bool = False
+    ) -> Iterator[sudsobject.Object | SpendCategory]:
+        method = "Get_Resource_Categories"
+        results = self._get_paginated(method, "Resource_Category")
+        for category in results:
+            yield category if return_suds_object else workday_spend_category_to_pydantic(
+                suds_to_dict(category)
             )
 
     def get_tax_applicabilities(

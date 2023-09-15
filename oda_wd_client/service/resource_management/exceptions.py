@@ -1,0 +1,2 @@
+class NoSupplierID(Exception):
+    pass

@@ -8,8 +8,9 @@ from oda_wd_client.base.types import File, WorkdayReferenceBaseModel
 from oda_wd_client.base.utils import parse_workday_date
 from oda_wd_client.service.financial_management.types import (
     Company,
-    CostCenter,
+    CostCenterWorktag,
     Currency,
+    ProjectWorktag,
     SpendCategory,
 )
 
@@ -152,7 +153,8 @@ class SupplierInvoiceLine(BaseModel):
     tax_applicability: TaxApplicability | None
     tax_code: TaxCode | None
     spend_category: SpendCategory | None
-    cost_center: CostCenter | None
+    cost_center: CostCenterWorktag | None
+    project: ProjectWorktag | None
     gross_amount: Decimal = Field(max_digits=18, decimal_places=3)
     tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
     total_amount: Decimal | None = Field(max_digits=18, decimal_places=3)

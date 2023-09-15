@@ -4,6 +4,7 @@ from suds import sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
 from oda_wd_client.base.tools import suds_to_dict
+from oda_wd_client.service.resource_management.exceptions import NoSupplierID
 from oda_wd_client.service.resource_management.types import Supplier, SupplierInvoice
 from oda_wd_client.service.resource_management.utils import (
     pydantic_supplier_invoice_to_workday,
@@ -21,9 +22,13 @@ class ResourceManagement(WorkdayClient):
         method = "Get_Suppliers"
         results = self._get_paginated(method, "Supplier")
         for supplier in results:
-            yield supplier if return_suds_object else workday_supplier_to_pydantic(
-                suds_to_dict(supplier)
-            )
+            try:
+                yield supplier if return_suds_object else workday_supplier_to_pydantic(
+                    suds_to_dict(supplier)
+                )
+            except NoSupplierID:
+                # We'll skip suppliers without an ID
+                pass
 
     def get_supplier_invoices(
         self, return_suds_object=False
