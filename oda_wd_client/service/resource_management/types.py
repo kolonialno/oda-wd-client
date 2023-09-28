@@ -158,6 +158,7 @@ class SupplierInvoiceLine(BaseModel):
     gross_amount: Decimal = Field(max_digits=18, decimal_places=3)
     tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
     total_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
+    budget_date: date | None
 
 
 class SupplierInvoice(WorkdayReferenceBaseModel):
