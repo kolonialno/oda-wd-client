@@ -29,6 +29,7 @@ from oda_wd_client.service.resource_management.types import (
 TAX_ID_SPEC = {
     "AUT-UID": "tax_id_au",
     "BEL-NOTVA": "tax_id_be",
+    "CHE-EID": "tax_id_ch",
     "DEU-USTIDNR": "tax_id_de",
     "DNK-MOMS": "tax_id_dk",
     "ESP-IVA": "tax_id_es",
@@ -37,6 +38,7 @@ TAX_ID_SPEC = {
     "IRE-VATNO": "tax_id_ir",
     "NLD-BTWNR": "tax_id_nl",
     "NOR-VAT": "tax_id_no",
+    "POL-VATNIP": "tax_id_pl",
     "SWE-MOMSNR": "tax_id_se",
     "USA-EIN": "tax_id_us",
 }

@@ -77,6 +77,8 @@ class Supplier(WorkdayReferenceBaseModel):
     tax_id_au: str | None
     # Belgium - NOTVA
     tax_id_be: str | None
+    # Switzerland - EID
+    tax_id_ch: str | None
     # Germany - USTIDNR
     tax_id_de: str | None
     # Denmark - MOMS
@@ -91,6 +93,8 @@ class Supplier(WorkdayReferenceBaseModel):
     tax_id_ir: str | None
     # Netherlands - BTWNR
     tax_id_nl: str | None
+    # Poland - VATNIP
+    tax_id_pl: str | None
     # Sweden - MOMSNR
     tax_id_se: str | None
     # USA - EIN
