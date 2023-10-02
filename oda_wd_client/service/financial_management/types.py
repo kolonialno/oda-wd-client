@@ -77,7 +77,7 @@ class JournalSource(WorkdayReferenceBaseModel):
     workday_id: str
 
     class JournalSourceID(str, Enum):
-        # TODO: Get a new value added to workday ("Snowflake_Integration"") (Linear: DIP-1175)
+        integration = "Integration"
         spreadsheet_upload = "Spreadsheet_Upload"
 
     _class_name = "Journal_SourceObject"
