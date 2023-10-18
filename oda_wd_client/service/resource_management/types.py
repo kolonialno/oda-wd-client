@@ -69,36 +69,7 @@ class Supplier(WorkdayReferenceBaseModel):
     currency: str | None
     bank_account: str | None
     iban: str | None
-
-    # Tax ID format and type varies by country. This is organization number in Norway.
-    # Norway - VAT
-    tax_id_no: str | None
-    # Austria - UID
-    tax_id_au: str | None
-    # Belgium - NOTVA
-    tax_id_be: str | None
-    # Switzerland - EID
-    tax_id_ch: str | None
-    # Germany - USTIDNR
-    tax_id_de: str | None
-    # Denmark - MOMS
-    tax_id_dk: str | None
-    # Spain - IVA
-    tax_id_es: str | None
-    # Finland - ALV
-    tax_id_fi: str | None
-    # Great Britain - VATREGNO
-    tax_id_gb: str | None
-    # Ireland - VATNO (I think -- it's called "IRE-VATNO" in WD, but IRE is not a valid countrycode)
-    tax_id_ir: str | None
-    # Netherlands - BTWNR
-    tax_id_nl: str | None
-    # Poland - VATNIP
-    tax_id_pl: str | None
-    # Sweden - MOMSNR
-    tax_id_se: str | None
-    # USA - EIN
-    tax_id_us: str | None
+    primary_transaction_tax_id: str | None
 
 
 class TaxRate(WorkdayReferenceBaseModel):

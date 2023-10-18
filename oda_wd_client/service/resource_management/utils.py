@@ -23,44 +23,6 @@ from oda_wd_client.service.resource_management.types import (
     TaxRecoverability,
 )
 
-# Mapping the Workday tax ID types to canonical names used by our model
-# If the prefixes of this list were ISO 3166-compatible, we could just use those to match to country-specific fields,
-# but they're not (see Ireland), so we need a canonical mapping of our own.
-TAX_ID_SPEC = {
-    "AUT-UID": "tax_id_au",
-    "BEL-NOTVA": "tax_id_be",
-    "CHE-EID": "tax_id_ch",
-    "DEU-USTIDNR": "tax_id_de",
-    "DNK-MOMS": "tax_id_dk",
-    "ESP-IVA": "tax_id_es",
-    "FIN-ALV": "tax_id_fi",
-    "GBR-VATREGNO": "tax_id_gb",
-    "IRE-VATNO": "tax_id_ir",
-    "NLD-BTWNR": "tax_id_nl",
-    "NOR-VAT": "tax_id_no",
-    "POL-VATNIP": "tax_id_pl",
-    "SWE-MOMSNR": "tax_id_se",
-    "USA-EIN": "tax_id_us",
-}
-
-
-def _get_tax_id_from_dict(data: dict) -> dict:
-    """
-    Tax IDs, like the Norwegian organization number, are nested deep into the
-    response from Workday. We'll attempt to get and flatten those values.
-    """
-    ret = {}
-
-    for tax_id_type in data.get("Tax_ID_Data", []):
-        type_ref_value = get_id_from_list(
-            tax_id_type["Tax_ID_Type_Reference"]["ID"], "Tax_ID_Type"
-        )
-        assert type_ref_value, "Tax ID type is an expected reference in this object"
-        type_name = TAX_ID_SPEC[type_ref_value]
-        ret[type_name] = tax_id_type["Tax_ID_Text"]
-
-    return ret
-
 
 def _get_account_data_from_dict(data: dict) -> dict:
     """
@@ -122,7 +84,11 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
     sup_id = sup_data.get("Supplier_ID", None)
     if not sup_id:
         raise NoSupplierID()
-    tax_id_data = _get_tax_id_from_dict(sup_data.get("Tax_ID_Widget_Data", {}))
+    primary_transaction_tax_id = None
+    tax_id_data = sup_data.get("Tax_ID_Widget_Data", {}).get("Tax_ID_Data", [])
+    for item in tax_id_data:
+        if item["Primary_Tax_ID"] and item["Transaction_Tax_ID"]:
+            primary_transaction_tax_id = item["Tax_ID_Text"]
     account_data = _get_account_data_from_dict(
         sup_data.get("Settlement_Account_Widget_Data", {})
     )
@@ -139,13 +105,13 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
             sup_data.get("Payment_Terms_Reference", {}).get("ID", []),
             "Payment_Terms_ID",
         ),
+        primary_transaction_tax_id=primary_transaction_tax_id,
         # Currency_ID _should_ be in accordance with ISO 4217
         currency=get_id_from_list(currency_ref["ID"], "Currency_ID")
         if currency_ref
         else None,
         **contact_data,
         **account_data,
-        **tax_id_data,
     )
 
 
