@@ -153,6 +153,7 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     total_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_option: TaxOption | None
+    additional_reference_number: str | None
 
     lines: list[SupplierInvoiceLine]
     attachments: list[FinancialAttachmentData] | None
