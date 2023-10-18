@@ -269,6 +269,7 @@ def pydantic_supplier_invoice_to_workday(
     invoice_data.Invoice_Line_Replacement_Data = _get_wd_invoice_lines_from_invoice(
         client, invoice.lines
     )
+    invoice_data.Additional_Reference_Number = invoice.additional_reference_number
     if invoice.attachments:
         invoice_data.Attachment_Data = [
             attachment.wd_object(client) for attachment in invoice.attachments
