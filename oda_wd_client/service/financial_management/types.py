@@ -128,6 +128,7 @@ class CostCenterWorktag(WorkdayReferenceBaseModel):
     workday_id: str
     workday_id_type: Literal["Cost_Center_Reference_ID"] = "Cost_Center_Reference_ID"
     name: str | None
+    active: bool = True
 
 
 class ProjectWorktag(WorkdayReferenceBaseModel):
