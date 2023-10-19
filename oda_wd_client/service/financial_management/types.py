@@ -113,6 +113,7 @@ class SpendCategory(WorkdayReferenceBaseModel):
     workday_id_type: Literal["Spend_Category_ID"] = "Spend_Category_ID"
     name: str | None
     inactive: bool = False
+    usage_ids: list[str] = []
 
 
 class CostCenterWorktag(WorkdayReferenceBaseModel):
