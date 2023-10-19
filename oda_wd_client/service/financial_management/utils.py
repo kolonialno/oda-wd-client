@@ -126,6 +126,7 @@ def workday_cost_center_to_pydantic(data: dict) -> CostCenterWorktag:
     return CostCenterWorktag(
         workday_id=cost_center_id,
         name=data["Cost_Center_Data"]["Organization_Data"]["Organization_Name"],
+        active=data["Cost_Center_Data"]["Organization_Data"]["Organization_Active"],
     )
 
 
