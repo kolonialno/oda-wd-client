@@ -138,11 +138,18 @@ def workday_spend_category_to_pydantic(data: dict) -> SpendCategory:
     assert (
         ref_id == resource_id
     ), "The Resource_Category_ID and Spend_Category_ID are expected to be equal"
+    usage_ids = []
+
+    for item in cat_data.get("Spend_Category_Usage_Reference", []):
+        val = get_id_from_list(item["ID"], "WID")
+        if val:
+            usage_ids.append(val)
 
     return SpendCategory(
         workday_id=ref_id,
         name=cat_data["Resource_Category_Name"],
         inactive=cat_data["Inactive"],
+        usage_ids=usage_ids,
     )
 
 
