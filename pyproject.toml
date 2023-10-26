@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oda-wd-client"
-version = "0.0.8"
+version = "0.0.9"
 description = "A library for interacting with Workday from Python"
 authors = [
     "Karl Fredrik Haugland <karlfredrik.haugland@oda.com>",
