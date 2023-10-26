@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, Field, validator
@@ -51,6 +52,22 @@ class TaxCode(WorkdayReferenceBaseModel):
     workday_id_type: Literal["Tax_Code_ID"] = "Tax_Code_ID"
 
 
+class SupplierStatus(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Get_Suppliers.html#Supplier_Status_DataType  # noqa
+    """
+
+    class WorkdayID(str, Enum):
+        active = "ACTIVE"
+        inactive = "INACTIVE"
+
+    _class_name = "Business_Entity_Status_ValueObject"
+    workday_id: WorkdayID
+    workday_id_type: Literal[
+        "Business_Entity_Status_Value_ID"
+    ] = "Business_Entity_Status_Value_ID"
+
+
 class Supplier(WorkdayReferenceBaseModel):
     """
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Get_Suppliers.html#SupplierType  # noqa
@@ -59,6 +76,7 @@ class Supplier(WorkdayReferenceBaseModel):
     _class_name = "SupplierObject"
     workday_id: str
     workday_id_type: Literal["Supplier_ID"] = "Supplier_ID"
+    status: SupplierStatus | None = None
     reference_id: str | None
     name: str | None
     payment_terms: str | None
@@ -117,6 +135,22 @@ class FinancialAttachmentData(File):
     field_type = "Financials_Attachment_DataType"
 
 
+class PrepaidAmortizationType(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Prepaid_Amortization_TypeObjectType  # noqa
+    """
+
+    class WorkdayID(str, Enum):
+        manual = "Manual"
+        scheduled = "Scheduled"
+
+    _class_name = "Prepaid_Amortization_TypeObject"
+    workday_id: WorkdayID
+    workday_id_type: Literal[
+        "Prepayment_Release_Type_ID"
+    ] = "Prepayment_Release_Type_ID"
+
+
 class SupplierInvoiceLine(BaseModel):
     """
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_Line_Replacement_DataType  # noqa
@@ -130,9 +164,11 @@ class SupplierInvoiceLine(BaseModel):
     spend_category: SpendCategory | None
     cost_center: CostCenterWorktag | None
     project: ProjectWorktag | None
+    # Incl. VAT
     gross_amount: Decimal = Field(max_digits=18, decimal_places=3)
+    # Excl. VAT
+    net_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
     tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
-    total_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
     budget_date: date | None
 
 
@@ -154,6 +190,8 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_option: TaxOption | None
     additional_reference_number: str | None
+    prepaid: bool = False
+    prepayment_release_type_reference: PrepaidAmortizationType | None = None
 
     lines: list[SupplierInvoiceLine]
     attachments: list[FinancialAttachmentData] | None

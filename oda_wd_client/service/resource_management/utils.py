@@ -12,9 +12,11 @@ from oda_wd_client.service.financial_management.types import (
 )
 from oda_wd_client.service.resource_management.exceptions import NoSupplierID
 from oda_wd_client.service.resource_management.types import (
+    PrepaidAmortizationType,
     Supplier,
     SupplierInvoice,
     SupplierInvoiceLine,
+    SupplierStatus,
     TaxApplicability,
     TaxCode,
     TaxOption,
@@ -96,11 +98,17 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
         sup_data["Business_Entity_Data"].get("Contact_Data", {})
     )
     currency_ref = sup_data.get("Currency_Reference", None)
+    status_ref = None
+    for status_line in sup_data.get("Supplier_Status_Data", []):
+        _ref = SupplierStatus.from_id_list(status_line["Status_Reference"]["ID"])
+        if _ref:
+            status_ref = _ref
 
     return Supplier(
         workday_id=sup_id,
         reference_id=sup_data.get("Supplier_Reference_ID", None),
         name=sup_data["Supplier_Name"],
+        status=status_ref,
         payment_terms=get_id_from_list(
             sup_data.get("Payment_Terms_Reference", {}).get("ID", []),
             "Payment_Terms_ID",
@@ -177,6 +185,9 @@ def workday_supplier_invoice_to_pydantic(data: dict) -> SupplierInvoice:
     )
     currency_ref = get_id_from_list(inv["Currency_Reference"]["ID"], "Currency_ID")
     supplier_ref = get_id_from_list(inv["Supplier_Reference"]["ID"], "Supplier_ID")
+    prepaid_ref = get_id_from_list(
+        inv["Prepayment_Release_Type_Reference"]["ID"], "Prepayment_Release_Type_ID"
+    )
 
     # Type narrowing
     assert company_ref is not None
@@ -195,6 +206,12 @@ def workday_supplier_invoice_to_pydantic(data: dict) -> SupplierInvoice:
         due_date=inv["Due_Date_Override"],
         total_amount=inv["Control_Amount_Total"],
         tax_amount=inv["Tax_Amount"],
+        prepaid=inv["Prepaid"],
+        prepayment_release_type_reference=PrepaidAmortizationType(
+            workday_id=getattr(PrepaidAmortizationType.WorkdayID, prepaid_ref)
+        )
+        if prepaid_ref
+        else None,
         lines=lines,
     )
 
@@ -208,7 +225,8 @@ def _get_wd_invoice_lines_from_invoice(
         wd_line = client.factory("ns0:Supplier_Invoice_Line_Replacement_DataType")
         wd_line.Line_Order = line.order
         wd_line.Item_Description = line.description
-        wd_line.Extended_Amount = line.gross_amount
+        # Extended amount is without VAT
+        wd_line.Extended_Amount = line.net_amount
         if line.spend_category:
             wd_line.Spend_Category_Reference = line.spend_category.wd_object(client)
 
