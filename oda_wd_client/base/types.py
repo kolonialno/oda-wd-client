@@ -1,4 +1,5 @@
 from base64 import b64encode
+from enum import Enum
 from typing import Self
 
 import magic
@@ -17,11 +18,24 @@ class WorkdayReferenceBaseModel(BaseModel):
     A reference model is a model that is used to reference another pre-existing object in Workday.
     These models are used to have a simple/convenient way to generate reference objects for Workday, through the use of
     workday_id and workday_id_type.
+
+    _class_name and workday_id_type must be set for all implementations.
+
+    _class_name: name of the class in Workday, usually ending in something like "Object"
+    workday_id_type: the @type value in the TypeObjectID spec, i.e. "Reference_Type_ID"
+    workday_id: Holds the actual value of the reference object, usually string. Corresponds to #text in the
+        ObjectID spec in the docs
+
+    Example:
+        class TaxOption(WorkdayReferenceBaseModel):
+            _class_name = "Tax_OptionObject"
+            workday_id_type: Literal["Tax_Option_ID"] = "Tax_Option_ID"
+
     """
 
-    workday_id: str | None
+    workday_id: str | Enum | None
     workday_id_type: str
-    workday_parent_id: str | None = None
+    workday_parent_id: str | Enum | None = None
     workday_parent_type: str | None = None
 
     # This is the name of the class in Workday. Usually ends with "Object" (i.e. "SupplierObject")
@@ -39,10 +53,17 @@ class WorkdayReferenceBaseModel(BaseModel):
 
         ref_obj = client.factory(f"ns0:{class_name}Type")
         id_obj = client.factory(f"ns0:{class_name}IDType")
-        id_obj.value = self.workday_id
+        if isinstance(self.workday_id, Enum):
+            id_obj.value = self.workday_id.value
+        else:
+            id_obj.value = self.workday_id
+
         id_obj._type = self.workday_id_type
         if self.workday_parent_id:
-            id_obj._parent_id = self.workday_parent_id
+            if isinstance(self.workday_parent_id, Enum):
+                id_obj._parent_id = self.workday_parent_id.value
+            else:
+                id_obj._parent_id = self.workday_parent_id
             id_obj._parent_type = self.workday_parent_type
 
         ref_obj.ID.append(id_obj)

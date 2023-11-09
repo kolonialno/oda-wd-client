@@ -266,11 +266,8 @@ def pydantic_supplier_invoice_to_workday(
     """
     invoice_data = client.factory("ns0:Supplier_Invoice_DataType")
 
-    # Submit to business process rather than uploading invoice in draft mode
-    invoice_data.Submit = True
-
-    # Should not be edited inside Workday, only through API
-    invoice_data.Locked_in_Workday = True
+    invoice_data.Submit = invoice.submit
+    invoice_data.Locked_in_Workday = invoice.locked_in_workday
 
     invoice_data.Invoice_Number = invoice.invoice_number
     invoice_data.Suppliers_Invoice_Number = invoice.invoice_number
@@ -287,7 +284,22 @@ def pydantic_supplier_invoice_to_workday(
     invoice_data.Invoice_Line_Replacement_Data = _get_wd_invoice_lines_from_invoice(
         client, invoice.lines
     )
-    invoice_data.Additional_Reference_Number = invoice.additional_reference_number
+    if invoice.additional_reference_number:
+        if not invoice.additional_type_reference:
+            raise Exception(
+                "If additional_reference_number is set, then additional_type_reference must also be set"
+            )
+        invoice_data.Additional_Reference_Number = invoice.additional_reference_number
+        invoice_data.Additional_Type_Reference = (
+            invoice.additional_type_reference.wd_object(client)
+        )
+
+    invoice_data.Prepaid = invoice.prepaid
+    invoice_data.Prepayment_Release_Type_Reference = (
+        (invoice.prepayment_release_type_reference.wd_object(client))
+        if invoice.prepayment_release_type_reference
+        else None
+    )
     if invoice.attachments:
         invoice_data.Attachment_Data = [
             attachment.wd_object(client) for attachment in invoice.attachments
