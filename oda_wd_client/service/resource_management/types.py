@@ -142,13 +142,24 @@ class PrepaidAmortizationType(WorkdayReferenceBaseModel):
 
     class WorkdayID(str, Enum):
         manual = "Manual"
-        scheduled = "Scheduled"
+        schedule = "Schedule"
 
     _class_name = "Prepaid_Amortization_TypeObject"
     workday_id: WorkdayID
     workday_id_type: Literal[
         "Prepayment_Release_Type_ID"
     ] = "Prepayment_Release_Type_ID"
+
+
+class AdditionalReferenceType(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v41.1/Submit_Supplier_Invoice.html#Additional_Reference_TypeObjectType  # noqa
+    """
+
+    _class_name = "Additional_Reference_TypeObject"
+    workday_id_type: Literal[
+        "Additional_Reference_Type_ID"
+    ] = "Additional_Reference_Type_ID"
 
 
 class SupplierInvoiceLine(BaseModel):
@@ -190,11 +201,17 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_option: TaxOption | None
     additional_reference_number: str | None
+    additional_type_reference: AdditionalReferenceType | None
     prepaid: bool = False
     prepayment_release_type_reference: PrepaidAmortizationType | None = None
 
     lines: list[SupplierInvoiceLine]
     attachments: list[FinancialAttachmentData] | None
+
+    # Submit to business process rather than uploading invoice in draft mode
+    submit: bool = True
+    # Should not be edited inside Workday, only through API
+    locked_in_workday: bool = True
 
     _normalize_dates = validator("invoice_date", "due_date", allow_reuse=True)(
         parse_workday_date
