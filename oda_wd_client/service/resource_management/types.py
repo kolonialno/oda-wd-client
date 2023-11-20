@@ -168,6 +168,7 @@ class SupplierInvoiceLine(BaseModel):
     """
 
     order: int | None
+    quantity: Decimal = Field(max_digits=22, decimal_places=2, default=Decimal(0))
     description: str = "-No description-"
     tax_rate_options_data: TaxRateOptionsData | None
     tax_applicability: TaxApplicability | None
