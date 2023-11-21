@@ -79,6 +79,7 @@ class JournalSource(WorkdayReferenceBaseModel):
     class JournalSourceID(str, Enum):
         integration = "Integration"
         spreadsheet_upload = "Spreadsheet_Upload"
+        snowflake = "Snowflake"
 
     _class_name = "Journal_SourceObject"
     workday_id_type: Literal["Journal_Source_ID"] = "Journal_Source_ID"
