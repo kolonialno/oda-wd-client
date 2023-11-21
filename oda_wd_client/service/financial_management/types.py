@@ -174,6 +174,7 @@ class JournalEntryLineData(BaseModel):
     credit: Decimal | None = None
     cost_center: CostCenterWorktag | None = None
     spend_category: SpendCategory | None = None
+    memo: str
 
 
 class AccountingJournalData(BaseModel):

@@ -246,5 +246,6 @@ def pydantic_accounting_journal_to_workday(
             journal_entry_line_data, client
         )
         wd_accounting_journal.Journal_Entry_Line_Replacement_Data.append(wd_data)
+        wd_accounting_journal.Memo = journal_entry_line_data.memo
 
     return wd_accounting_journal
