@@ -218,6 +218,7 @@ def _pydantic_journal_entry_line_to_workday(
 
     wd_journal_entry_line.Debit_Amount = journal_line.debit
     wd_journal_entry_line.Credit_Amount = journal_line.credit
+    wd_journal_entry_line.Memo = journal_line.memo
 
     return wd_journal_entry_line
 
@@ -246,6 +247,5 @@ def pydantic_accounting_journal_to_workday(
             journal_entry_line_data, client
         )
         wd_accounting_journal.Journal_Entry_Line_Replacement_Data.append(wd_data)
-        wd_accounting_journal.Memo = journal_entry_line_data.memo
 
     return wd_accounting_journal
