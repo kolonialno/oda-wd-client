@@ -190,6 +190,7 @@ class AccountingJournalData(BaseModel):
     ledger_type: LedgerType
     journal_source: JournalSource
     journal_entry_line_data: list[JournalEntryLineData]
+    memo: str | None = None
 
     @property
     def accounting_journal_id(self):
