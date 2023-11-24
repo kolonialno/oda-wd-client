@@ -194,4 +194,4 @@ class AccountingJournalData(BaseModel):
 
     @property
     def accounting_journal_id(self):
-        return f"{self.accounting_date.strftime('%Y%m%d')}-{self.company.workday_id}-v2"
+        return f"{self.accounting_date.strftime('%Y%m%d')}-{self.company.workday_id}"
