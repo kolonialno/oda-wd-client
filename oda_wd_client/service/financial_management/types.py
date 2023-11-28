@@ -192,3 +192,4 @@ class AccountingJournalData(BaseModel):
     journal_entry_line_data: list[JournalEntryLineData]
     memo: str | None = None
     submit: bool | None = None
+    auto_complete: bool | None = None
