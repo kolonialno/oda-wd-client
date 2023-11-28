@@ -193,3 +193,4 @@ class AccountingJournalData(BaseModel):
     memo: str | None = None
     submit: bool | None = None
     auto_complete: bool | None = None
+    accounting_journal_id: str
