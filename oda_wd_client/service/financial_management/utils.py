@@ -243,6 +243,9 @@ def pydantic_accounting_journal_to_workday(
     if journal.memo:
         wd_accounting_journal.Journal_Entry_Memo = journal.memo
 
+    if journal.submit:
+        wd_accounting_journal.Submit = journal.submit
+
     wd_accounting_journal.Company_Reference = journal.company.wd_object(client)
     wd_accounting_journal.Ledger_Type_Reference = journal.ledger_type.wd_object(client)
     for journal_entry_line_data in journal.journal_entry_line_data:
