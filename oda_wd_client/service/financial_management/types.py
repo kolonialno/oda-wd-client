@@ -191,8 +191,4 @@ class AccountingJournalData(BaseModel):
     journal_source: JournalSource
     journal_entry_line_data: list[JournalEntryLineData]
     memo: str | None = None
-    submit: bool = False
-
-    @property
-    def accounting_journal_id(self):
-        return f"{self.accounting_date.strftime('%Y%m%d')}-{self.company.workday_id}"
+    submit: bool | None = None
