@@ -15,6 +15,7 @@ from oda_wd_client.service.financial_management.types import (
     SpendCategory,
 )
 from oda_wd_client.service.financial_management.utils import (
+    get_business_process_parameters,
     pydantic_accounting_journal_to_workday,
     pydantic_conversion_rate_to_workday,
     workday_company_to_pydantic,
@@ -122,9 +123,11 @@ class FinancialManagement(WorkdayClient):
                 )
 
     def submit_accounting_journal(
-        self, journal: AccountingJournalData
+        self, journal: AccountingJournalData, auto_complete: bool = True
     ) -> sudsobject.Object:
-        data_object = pydantic_accounting_journal_to_workday(journal, client=self)
+        accounting_journal_data_object = pydantic_accounting_journal_to_workday(journal, client=self)
+        business_process_parameters = get_business_process_parameters(auto_complete=auto_complete, client=self)
+
         return self._request(
-            "Submit_Accounting_Journal", Accounting_Journal_Data=data_object
+            "Submit_Accounting_Journal", Accounting_Journal_Data=accounting_journal_data_object, Business_Process_Parameters=business_process_parameters
         )

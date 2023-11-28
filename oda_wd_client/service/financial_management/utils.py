@@ -246,11 +246,6 @@ def pydantic_accounting_journal_to_workday(
     if journal.submit:
         wd_accounting_journal.Submit = journal.submit
 
-    if journal.auto_complete:
-        financials_business_process_parameters = client.factory("ns0:Financials_Business_Process_ParametersType")
-        financials_business_process_parameters.Auto_Complete = journal.auto_complete
-        wd_accounting_journal.Financials_Business_Process_Parameters = financials_business_process_parameters
-
     wd_accounting_journal.Company_Reference = journal.company.wd_object(client)
     wd_accounting_journal.Ledger_Type_Reference = journal.ledger_type.wd_object(client)
     for journal_entry_line_data in journal.journal_entry_line_data:
@@ -260,3 +255,8 @@ def pydantic_accounting_journal_to_workday(
         wd_accounting_journal.Journal_Entry_Line_Replacement_Data.append(wd_data)
 
     return wd_accounting_journal
+
+def get_business_process_parameters(auto_complete: bool, client: WorkdayClient) -> sudsobject.Object:
+    financials_business_process_parameters = client.factory("ns0:Financials_Business_Process_ParametersType")
+    financials_business_process_parameters.Auto_Complete = auto_complete
+    return financials_business_process_parameters
