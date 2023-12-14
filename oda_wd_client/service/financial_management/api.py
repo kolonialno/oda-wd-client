@@ -125,9 +125,15 @@ class FinancialManagement(WorkdayClient):
     def submit_accounting_journal(
         self, journal: AccountingJournalData, auto_complete: bool = True
     ) -> sudsobject.Object:
-        accounting_journal_data_object = pydantic_accounting_journal_to_workday(journal, client=self)
-        business_process_parameters = get_business_process_parameters(auto_complete=auto_complete, client=self)
+        accounting_journal_data_object = pydantic_accounting_journal_to_workday(
+            journal, client=self
+        )
+        business_process_parameters = get_business_process_parameters(
+            auto_complete=auto_complete, client=self
+        )
 
         return self._request(
-            "Submit_Accounting_Journal", Accounting_Journal_Data=accounting_journal_data_object, Business_Process_Parameters=business_process_parameters
+            "Submit_Accounting_Journal",
+            Accounting_Journal_Data=accounting_journal_data_object,
+            Business_Process_Parameters=business_process_parameters,
         )
