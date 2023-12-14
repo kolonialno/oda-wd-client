@@ -256,7 +256,12 @@ def pydantic_accounting_journal_to_workday(
 
     return wd_accounting_journal
 
-def get_business_process_parameters(auto_complete: bool, client: WorkdayClient) -> sudsobject.Object:
-    financials_business_process_parameters = client.factory("ns0:Financials_Business_Process_ParametersType")
+
+def get_business_process_parameters(
+    auto_complete: bool, client: WorkdayClient
+) -> sudsobject.Object:
+    financials_business_process_parameters = client.factory(
+        "ns0:Financials_Business_Process_ParametersType"
+    )
     financials_business_process_parameters.Auto_Complete = auto_complete
     return financials_business_process_parameters
