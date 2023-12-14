@@ -190,7 +190,6 @@ class AccountingJournalData(BaseModel):
     ledger_type: LedgerType
     journal_source: JournalSource
     journal_entry_line_data: list[JournalEntryLineData]
-
-    @property
-    def accounting_journal_id(self):
-        return f"{self.accounting_date.strftime('%Y%m%d')}-{self.company.workday_id}"
+    memo: str | None = None
+    submit: bool | None = None
+    accounting_journal_id: str
