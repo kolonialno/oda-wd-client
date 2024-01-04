@@ -192,7 +192,7 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     workday_id_type: Literal[
         "Supplier_invoice_Reference_ID"
     ] = "Supplier_invoice_Reference_ID"
-    invoice_number: str
+    invoice_number: str | None
     company: Company
     currency: Currency
     supplier: Supplier
