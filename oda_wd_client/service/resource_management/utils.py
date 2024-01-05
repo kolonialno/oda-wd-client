@@ -86,11 +86,11 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
     sup_id = sup_data.get("Supplier_ID", None)
     if not sup_id:
         raise NoSupplierID()
-    primary_transaction_tax_id = None
+    primary_tax_id = None
     tax_id_data = sup_data.get("Tax_ID_Widget_Data", {}).get("Tax_ID_Data", [])
     for item in tax_id_data:
-        if item["Primary_Tax_ID"] and item["Transaction_Tax_ID"]:
-            primary_transaction_tax_id = item["Tax_ID_Text"]
+        if item["Primary_Tax_ID"]:
+            primary_tax_id = item["Tax_ID_Text"]
     account_data = _get_account_data_from_dict(
         sup_data.get("Settlement_Account_Widget_Data", {})
     )
@@ -113,7 +113,7 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
             sup_data.get("Payment_Terms_Reference", {}).get("ID", []),
             "Payment_Terms_ID",
         ),
-        primary_transaction_tax_id=primary_transaction_tax_id,
+        primary_tax_id=primary_tax_id,
         # Currency_ID _should_ be in accordance with ISO 4217
         currency=get_id_from_list(currency_ref["ID"], "Currency_ID")
         if currency_ref

@@ -87,7 +87,7 @@ class Supplier(WorkdayReferenceBaseModel):
     currency: str | None
     bank_account: str | None
     iban: str | None
-    primary_transaction_tax_id: str | None
+    primary_tax_id: str | None
 
 
 class TaxRate(WorkdayReferenceBaseModel):
