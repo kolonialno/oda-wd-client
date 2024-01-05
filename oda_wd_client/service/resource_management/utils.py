@@ -270,7 +270,8 @@ def pydantic_supplier_invoice_to_workday(
     invoice_data.Submit = invoice.submit
     invoice_data.Locked_in_Workday = invoice.locked_in_workday
 
-    invoice_data.Invoice_Number = invoice.invoice_number
+    # We want to let workday set the invoice number, but keep the invoice's number for supplier's invoice number
+    invoice_data.Invoice_Number = None
     invoice_data.Suppliers_Invoice_Number = invoice.invoice_number
     invoice_data.Company_Reference = invoice.company.wd_object(client)
     invoice_data.Currency_Reference = invoice.currency.wd_object(client)
