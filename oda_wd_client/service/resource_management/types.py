@@ -203,6 +203,7 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     tax_option: TaxOption | None
     additional_reference_number: str | None
     additional_type_reference: AdditionalReferenceType | None
+    external_po_number: str | None
     prepaid: bool = False
     prepayment_release_type_reference: PrepaidAmortizationType | None = None
 

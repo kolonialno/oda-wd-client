@@ -296,6 +296,9 @@ def pydantic_supplier_invoice_to_workday(
             invoice.additional_type_reference.wd_object(client)
         )
 
+    if invoice.external_po_number:
+        invoice_data.External_PO_Number = invoice.external_po_number
+
     invoice_data.Prepaid = invoice.prepaid
     invoice_data.Prepayment_Release_Type_Reference = (
         (invoice.prepayment_release_type_reference.wd_object(client))
