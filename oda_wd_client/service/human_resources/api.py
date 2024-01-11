@@ -5,8 +5,12 @@ from suds import WebFault, sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
 from oda_wd_client.base.tools import suds_to_dict
-from oda_wd_client.service.human_resources.types import Worker
-from oda_wd_client.service.human_resources.utils import workday_worker_to_pydantic
+from oda_wd_client.service.human_resources.types import UniversalId, Worker
+from oda_wd_client.service.human_resources.utils import (
+    pydantic_universal_id_to_request_params,
+    workday_universal_id_to_pydantic,
+    workday_worker_to_pydantic,
+)
 
 
 class HumanResources(WorkdayClient):
@@ -80,3 +84,43 @@ class HumanResources(WorkdayClient):
         """
         method = "Change_Work_Contact_Information"
         return self._request(method, *args, **kwargs)
+
+    def get_contingent_workers(
+        self, as_of_date: date | None = None, return_suds_object: bool = False
+    ) -> Iterator[Worker | sudsobject.Object]:
+        """
+        Get all contingent workers
+
+        Kwargs:
+            as_of_date: If supplied, the Workday response will represent data that is affective at $DATE. I.e. if you
+                supply a date that is two weeks in the future, the data will include all employees starting over the
+                next two weeks.
+            return_suds_object: If True, returns raw suds objects rather than a list of Worker instances
+
+        """
+        method = "Get_Contingent_Worker"
+        filters = {}
+        if as_of_date:
+            filters["As_Of_Effective_Date"] = as_of_date
+
+        results = self._get_paginated(method, "Worker", filters=filters)
+        for worker in results:
+            yield worker if return_suds_object else workday_worker_to_pydantic(
+                suds_to_dict(worker), employee_number_field="Contingent_Worker_ID"
+            )
+
+    def get_universal_ids(self, raw_object: int = False) -> sudsobject.Object:
+        method = "Get_Universal_Identifier"
+        response = self._request(method)
+        if raw_object:
+            return response
+        results = response.Response_Data.Universal_Identifier
+        for result in results:
+            yield workday_universal_id_to_pydantic(suds_to_dict(result))
+
+    def put_universal_id(self, uid_obj: UniversalId) -> sudsobject.Object:
+        method = "Put_Universal_Identifier"
+        response = self._request(
+            method, **pydantic_universal_id_to_request_params(client=self, obj=uid_obj)
+        )
+        return response
