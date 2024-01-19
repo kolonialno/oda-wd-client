@@ -68,6 +68,8 @@ class WorkdayClient:
     Relevant docs: https://community.workday.com/articles/628676
     """
 
+    _API_VERSION = "40.2"
+
     # Each SOAP service must be instantiated individually, and we need more than one...
     _services: list[str] = [
         "Human_Resources",
@@ -109,7 +111,7 @@ class WorkdayClient:
     def _get_client_url(self, service: str) -> str:
         return urljoin(
             self._auth_base_url,
-            f"/ccx/service/{self._auth_tenant_name}/{service}/v38.1?wsdl",
+            f"/ccx/service/{self._auth_tenant_name}/{service}/v{self._API_VERSION}?wsdl",
         )
 
     def _setup_client(self, url: str) -> suds_client.Client:

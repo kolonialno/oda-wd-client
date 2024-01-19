@@ -162,6 +162,15 @@ class AdditionalReferenceType(WorkdayReferenceBaseModel):
     ] = "Additional_Reference_Type_ID"
 
 
+class InvoiceAdjustmentReason(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice_Adjustment.html#Invoice_Adjustment_ReasonObjectType  # noqa
+    """
+
+    _class_name = "Invoice_Adjustment_ReasonObject"
+    workday_id_type: Literal["Adjustment_Reason_ID"] = "Adjustment_Reason_ID"
+
+
 class SupplierInvoiceLine(BaseModel):
     """
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_Line_Replacement_DataType  # noqa
@@ -184,19 +193,17 @@ class SupplierInvoiceLine(BaseModel):
     budget_date: date | None
 
 
-class SupplierInvoice(WorkdayReferenceBaseModel):
+class BaseSupplierInvoice(WorkdayReferenceBaseModel):
     """
-    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_DataType  # noqa
+    Used as base class for SupplierInvoice and SupplierInvoiceAdjustment
+
+    Main reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_DataType  # noqa
     """
 
-    workday_id_type: Literal[
-        "Supplier_invoice_Reference_ID"
-    ] = "Supplier_invoice_Reference_ID"
     invoice_number: str | None
     company: Company
     currency: Currency
     supplier: Supplier
-    invoice_date: date
     due_date: date
     total_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
@@ -204,7 +211,6 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     additional_reference_number: str | None
     additional_type_reference: AdditionalReferenceType | None
     external_po_number: str | None
-    prepaid: bool = False
     prepayment_release_type_reference: PrepaidAmortizationType | None = None
 
     lines: list[SupplierInvoiceLine]
@@ -215,6 +221,38 @@ class SupplierInvoice(WorkdayReferenceBaseModel):
     # Should not be edited inside Workday, only through API
     locked_in_workday: bool = True
 
+
+class SupplierInvoice(BaseSupplierInvoice):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_DataType  # noqa
+    """
+
+    workday_id_type: Literal[
+        "Supplier_Invoice_Reference_ID"
+    ] = "Supplier_Invoice_Reference_ID"
+
+    invoice_date: date
+    prepaid: bool = False
+
     _normalize_dates = validator("invoice_date", "due_date", allow_reuse=True)(
+        parse_workday_date
+    )
+
+
+class SupplierInvoiceAdjustment(BaseSupplierInvoice):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice_Adjustment.html#Supplier_Invoice_Adjustment_DataType  # noqa
+    """
+
+    workday_id_type: Literal[
+        "Supplier_Invoice_Adjustment_Reference_ID"
+    ] = "Supplier_Invoice_Adjustment_Reference_ID"
+
+    adjustment_date: date
+    adjustment_reason: InvoiceAdjustmentReason = InvoiceAdjustmentReason(
+        workday_id="Other_Terms"
+    )
+
+    _normalize_dates = validator("adjustment_date", "due_date", allow_reuse=True)(
         parse_workday_date
     )
