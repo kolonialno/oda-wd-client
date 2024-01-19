@@ -15,6 +15,7 @@ from oda_wd_client.service.resource_management.types import (
     PrepaidAmortizationType,
     Supplier,
     SupplierInvoice,
+    SupplierInvoiceAdjustment,
     SupplierInvoiceLine,
     SupplierStatus,
     TaxApplicability,
@@ -126,7 +127,7 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
 def _workday_invoice_line_to_pydantic(data: dict, order: int) -> SupplierInvoiceLine:
     cost_center = None
     # Worktags is a list of tags, each with their own list of IDs
-    worktags = data["Worktags_Reference"]
+    worktags = data.get("Worktags_Reference", [])
     for tag in worktags:
         _cost_center = CostCenterWorktag.from_id_list(tag["ID"])
         if _cost_center:
@@ -157,21 +158,23 @@ def _workday_invoice_line_to_pydantic(data: dict, order: int) -> SupplierInvoice
         tax_rate_options_data=tax_rate_options_data,
         tax_applicability=TaxApplicability.from_id_list(
             data["Tax_Applicability_Reference"]["ID"]
-        ),
-        tax_code=TaxCode.from_id_list(data["Tax_Code_Reference"]["ID"]),
+        )
+        if "Tax_Applicability_Reference" in data
+        else None,
+        tax_code=TaxCode.from_id_list(data["Tax_Code_Reference"]["ID"])
+        if "Tax_Code_reference" in data
+        else None,
         spend_category=SpendCategory.from_id_list(
             data["Spend_Category_Reference"]["ID"]
-        ),
+        )
+        if "Spend_Category_Reference" in data
+        else None,
         cost_center=cost_center,
         gross_amount=data["Extended_Amount"],
     )
 
 
-def workday_supplier_invoice_to_pydantic(data: dict) -> SupplierInvoice:
-    data_list = data["Supplier_Invoice_Data"]
-    assert len(data_list) == 1, "Expecting only one invoice in this dataset"
-    inv: dict[str, Any] = data_list[0]
-
+def _get_common_invoice_attributes(inv: dict) -> dict:
     lines = []
     for i, line in enumerate(
         sorted(
@@ -185,23 +188,39 @@ def workday_supplier_invoice_to_pydantic(data: dict) -> SupplierInvoice:
     )
     currency_ref = get_id_from_list(inv["Currency_Reference"]["ID"], "Currency_ID")
     supplier_ref = get_id_from_list(inv["Supplier_Reference"]["ID"], "Supplier_ID")
-    prepaid_ref = get_id_from_list(
-        inv["Prepayment_Release_Type_Reference"]["ID"], "Prepayment_Release_Type_ID"
-    )
 
     # Type narrowing
     assert company_ref is not None
     assert currency_ref is not None
     assert supplier_ref is not None
 
+    return {
+        "company_ref": company_ref,
+        "currency_ref": currency_ref,
+        "supplier_ref": supplier_ref,
+        "lines": lines,
+    }
+
+
+def workday_supplier_invoice_to_pydantic(data: dict) -> SupplierInvoice:
+    data_list = data["Supplier_Invoice_Data"]
+    assert len(data_list) == 1, "Expecting only one invoice in this dataset"
+    inv: dict[str, Any] = data_list[0]
+
+    prepaid_ref = get_id_from_list(
+        inv["Prepayment_Release_Type_Reference"]["ID"], "Prepayment_Release_Type_ID"
+    )
+    common = _get_common_invoice_attributes(inv)
+
     return SupplierInvoice(
         workday_id=get_id_from_list(
-            data["Supplier_Invoice_Reference"]["ID"], "Supplier_Invoice_Reference_ID"
+            data["Supplier_Invoice_Reference"]["ID"],
+            id_type="Supplier_Invoice_Reference_ID",
         ),
         invoice_number=inv["Invoice_Number"],
-        company=Company(workday_id=company_ref),
-        currency=Currency(currency_code=currency_ref),
-        supplier=Supplier(workday_id=supplier_ref),
+        company=Company(workday_id=common["company_ref"]),
+        currency=Currency(currency_code=common["currency_ref"]),
+        supplier=Supplier(workday_id=common["supplier_ref"]),
         invoice_date=inv["Invoice_Date"],
         due_date=inv["Due_Date_Override"],
         total_amount=inv["Control_Amount_Total"],
@@ -212,7 +231,33 @@ def workday_supplier_invoice_to_pydantic(data: dict) -> SupplierInvoice:
         )
         if prepaid_ref
         else None,
-        lines=lines,
+        lines=common["lines"],
+    )
+
+
+def workday_supplier_invoice_adjustment_to_pydantic(
+    data: dict,
+) -> SupplierInvoiceAdjustment:
+    data_list = data["Supplier_Invoice_Adjustment_Data"]
+    assert len(data_list) == 1, "Expecting only one invoice in this dataset"
+    inv: dict[str, Any] = data_list[0]
+
+    common = _get_common_invoice_attributes(inv)
+
+    return SupplierInvoiceAdjustment(
+        workday_id=get_id_from_list(
+            data["Supplier_Invoice_Adjustment_Reference"]["ID"],
+            id_type="Supplier_Invoice_Adjustment_Reference_ID",
+        ),
+        invoice_number=inv["Invoice_Number"],
+        company=Company(workday_id=common["company_ref"]),
+        currency=Currency(currency_code=common["currency_ref"]),
+        supplier=Supplier(workday_id=common["supplier_ref"]),
+        adjustment_date=inv["Adjustment_Date"],
+        due_date=inv["Due_Date_Override"],
+        total_amount=inv["Control_Total_Amount"],
+        tax_amount=inv["Tax_Amount"],
+        lines=common["lines"],
     )
 
 
@@ -260,12 +305,33 @@ def _get_wd_invoice_lines_from_invoice(
 
 
 def pydantic_supplier_invoice_to_workday(
-    invoice: SupplierInvoice, client: WorkdayClient
+    invoice: SupplierInvoice | SupplierInvoiceAdjustment, client: WorkdayClient
 ) -> sudsobject.Object:
     """
-    Generate the data that is needed for a for Supplier_Invoice_Data in a call to Submit_Supplier_Invoice
+    Generate the data that is needed for a for Supplier_Invoice_Data in a call to Submit_Supplier_Invoice,
+    or for Supplier_Invoice_Adjustment_Data in a call to Submit_Supplier_Invoice_Adjustment
     """
-    invoice_data = client.factory("ns0:Supplier_Invoice_DataType")
+
+    # Handle attributes unique to a specific type
+    if isinstance(invoice, SupplierInvoice):
+        invoice_data = client.factory("ns0:Supplier_Invoice_DataType")
+        invoice_data.Invoice_Date = str(invoice.invoice_date)
+        invoice_data.Control_Amount_Total = invoice.total_amount
+        invoice_data.Prepaid = invoice.prepaid
+        invoice_data.Prepayment_Release_Type_Reference = (
+            (invoice.prepayment_release_type_reference.wd_object(client))
+            if invoice.prepayment_release_type_reference
+            else None
+        )
+    elif isinstance(invoice, SupplierInvoiceAdjustment):
+        invoice_data = client.factory("ns0:Supplier_Invoice_Adjustment_DataType")
+        invoice_data.Adjustment_Date = str(invoice.adjustment_date)
+        invoice_data.Control_Total_Amount = invoice.total_amount
+        invoice_data.Adjustment_Reason_Reference = invoice.adjustment_reason.wd_object(
+            client
+        )
+    else:
+        raise Exception("Invalid invoice type")
 
     invoice_data.Submit = invoice.submit
     invoice_data.Locked_in_Workday = invoice.locked_in_workday
@@ -278,9 +344,7 @@ def pydantic_supplier_invoice_to_workday(
     invoice_data.Supplier_Reference = invoice.supplier.wd_object(client)
     if invoice.tax_option:
         invoice_data.Default_Tax_Option_Reference = invoice.tax_option.wd_object(client)
-    invoice_data.Invoice_Date = str(invoice.invoice_date)
     invoice_data.Due_Date_Override = str(invoice.due_date)
-    invoice_data.Control_Amount_Total = invoice.total_amount
     # invoice_data.Tax_Amount = invoice.tax_amount
     # invoice_data.Attachment_Data = _get_wd_attachment_data_from_invoice(invoice)
     invoice_data.Invoice_Line_Replacement_Data = _get_wd_invoice_lines_from_invoice(
@@ -299,12 +363,6 @@ def pydantic_supplier_invoice_to_workday(
     if invoice.external_po_number:
         invoice_data.External_PO_Number = invoice.external_po_number
 
-    invoice_data.Prepaid = invoice.prepaid
-    invoice_data.Prepayment_Release_Type_Reference = (
-        (invoice.prepayment_release_type_reference.wd_object(client))
-        if invoice.prepayment_release_type_reference
-        else None
-    )
     if invoice.attachments:
         invoice_data.Attachment_Data = [
             attachment.wd_object(client) for attachment in invoice.attachments
