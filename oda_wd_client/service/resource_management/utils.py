@@ -90,7 +90,8 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
     primary_tax_id = None
     tax_id_data = sup_data.get("Tax_ID_Widget_Data", {}).get("Tax_ID_Data", [])
     for item in tax_id_data:
-        if item["Primary_Tax_ID"]:
+        # We can get a widget data item that has no Tax ID Text attribute
+        if item["Primary_Tax_ID"] and "Tax_ID_Text" in item:
             primary_tax_id = item["Tax_ID_Text"]
     account_data = _get_account_data_from_dict(
         sup_data.get("Settlement_Account_Widget_Data", {})
