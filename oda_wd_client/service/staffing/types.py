@@ -81,7 +81,7 @@ class Document(BaseModel):
         other_employee_documents = "DOC_CAT_Other_employee_documents"
 
     employee_number: str
-    wd_owned_category: WorkdayCategory | None
-    oda_category: OdaCategory | None
+    wd_owned_category: WorkdayCategory | None = None
+    oda_category: OdaCategory | None = None
     filename: str
     comment: str

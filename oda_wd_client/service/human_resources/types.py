@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 # All public imports should be done through oda_wd_client.types.human_resources
@@ -12,10 +10,10 @@ class Worker(BaseModel):
     """
 
     workday_id: str
-    employee_number: Optional[str]
+    employee_number: str | None = None
     name: str
-    work_email: Optional[str]
-    secondary_email: Optional[str]
+    work_email: str | None = None
+    secondary_email: str | None = None
 
 
 class PersonReference(BaseModel):
@@ -29,7 +27,7 @@ class PersonReference(BaseModel):
     subset of this data, and is not really expandable to support all uses of "RoleType" in Workday.
     """
 
-    workday_id: str | None
+    workday_id: str | None = None
     ref_type: str
     ref_id: str
 

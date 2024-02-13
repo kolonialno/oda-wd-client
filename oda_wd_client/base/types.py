@@ -1,15 +1,19 @@
 from base64 import b64encode
+from datetime import date
 from enum import Enum
-from typing import Self
+from typing import Annotated, Self
 
 import magic
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator
 from suds import sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
-from oda_wd_client.base.utils import get_id_from_list
+from oda_wd_client.base.utils import get_id_from_list, parse_workday_date
 
 mime = magic.Magic(mime=True)
+
+WorkdayDate = Annotated[date, BeforeValidator(parse_workday_date)]
+WorkdayOptionalDate = Annotated[date | None, BeforeValidator(parse_workday_date)]
 
 
 class WorkdayReferenceBaseModel(BaseModel):
@@ -33,7 +37,7 @@ class WorkdayReferenceBaseModel(BaseModel):
 
     """
 
-    workday_id: str | Enum | None
+    workday_id: str | Enum | None = None
     workday_id_type: str
     workday_parent_id: str | Enum | None = None
     workday_parent_type: str | None = None
@@ -98,7 +102,7 @@ class WorkdayReferenceBaseModel(BaseModel):
         :return: instance of Self
         """
         workday_id = get_id_from_list(
-            id_list, cls.__fields__["workday_id_type"].default
+            id_list, cls.model_fields["workday_id_type"].default
         )
         if workday_id:
             return cls(workday_id=workday_id, **extra)
@@ -118,8 +122,8 @@ class File(BaseModel):
 
     filename: str
     file_content: bytes
-    comment: str | None
-    content_type: str | None
+    comment: str | None = None
+    content_type: str | None = None
 
     def wd_object(self, client: WorkdayClient):
         doc = client.factory(f"ns0:{self.field_type}")

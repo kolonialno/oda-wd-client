@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 # As defined by API docs
 WORKDAY_DATE_FORMAT = "%m/%d/%Y"
@@ -21,7 +21,7 @@ def get_id_from_list(id_list: list, id_type: str) -> str | None:
     return None
 
 
-def parse_workday_date(val):
+def parse_workday_date(val: str | date | None) -> date | None:
     if isinstance(val, str):
         return datetime.strptime(val, WORKDAY_DATE_FORMAT).date()
     return val
