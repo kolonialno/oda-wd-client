@@ -23,7 +23,7 @@ class ConversionRate(BaseModel):
         budget = "Budget"
         average = "Average"
 
-    workday_id: str | None
+    workday_id: str | None = None
     # ISO 4217 defines three letters for currency ID
     from_currency_iso: str = Field(max_length=3)
     to_currency_iso: str = Field(max_length=3)
@@ -39,7 +39,7 @@ class ConversionRateType(BaseModel):
     """
 
     workday_id: str
-    text_id: str | None
+    text_id: str | None = None
     description: str
     is_default: bool = False
 
@@ -64,9 +64,9 @@ class Company(WorkdayReferenceBaseModel):
     _class_name = "CompanyObject"
     workday_id: str
     workday_id_type: Literal["Company_Reference_ID"] = "Company_Reference_ID"
-    name: str | None
-    currency: Currency | None
-    country_code: str | None = Field(max_length=2)
+    name: str | None = None
+    currency: Currency | None = None
+    country_code: str | None = Field(max_length=2, default=None)
 
 
 class JournalSource(WorkdayReferenceBaseModel):
@@ -112,7 +112,7 @@ class SpendCategory(WorkdayReferenceBaseModel):
     _class_name = "Spend_CategoryObject"
     workday_id: str
     workday_id_type: Literal["Spend_Category_ID"] = "Spend_Category_ID"
-    name: str | None
+    name: str | None = None
     inactive: bool = False
     usage_ids: list[str] = []
 
@@ -128,7 +128,7 @@ class CostCenterWorktag(WorkdayReferenceBaseModel):
     _class_name = "Accounting_WorktagObject"
     workday_id: str
     workday_id_type: Literal["Cost_Center_Reference_ID"] = "Cost_Center_Reference_ID"
-    name: str | None
+    name: str | None = None
     active: bool = True
 
 
@@ -143,7 +143,7 @@ class ProjectWorktag(WorkdayReferenceBaseModel):
     _class_name = "Accounting_WorktagObject"
     workday_id: str
     workday_id_type: Literal["Project_ID"] = "Project_ID"
-    name: str | None
+    name: str | None = None
     inactive: bool = False
 
 

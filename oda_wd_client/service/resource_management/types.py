@@ -3,10 +3,9 @@ from decimal import Decimal
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
-from oda_wd_client.base.types import File, WorkdayReferenceBaseModel
-from oda_wd_client.base.utils import parse_workday_date
+from oda_wd_client.base.types import File, WorkdayDate, WorkdayReferenceBaseModel
 from oda_wd_client.service.financial_management.types import (
     Company,
     CostCenterWorktag,
@@ -77,17 +76,17 @@ class Supplier(WorkdayReferenceBaseModel):
     workday_id: str
     workday_id_type: Literal["Supplier_ID"] = "Supplier_ID"
     status: SupplierStatus | None = None
-    reference_id: str | None
-    name: str | None
-    payment_terms: str | None
-    address: str | None
-    phone: str | None
-    email: str | None
-    url: str | None
-    currency: str | None
-    bank_account: str | None
-    iban: str | None
-    primary_tax_id: str | None
+    reference_id: str | None = None
+    name: str | None = None
+    payment_terms: str | None = None
+    address: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    url: str | None = None
+    currency: str | None = None
+    bank_account: str | None = None
+    iban: str | None = None
+    primary_tax_id: str | None = None
 
 
 class TaxRate(WorkdayReferenceBaseModel):
@@ -132,7 +131,7 @@ class FinancialAttachmentData(File):
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Financials_Attachment_DataType  # noqa
     """
 
-    field_type = "Financials_Attachment_DataType"
+    field_type: str = "Financials_Attachment_DataType"
 
 
 class PrepaidAmortizationType(WorkdayReferenceBaseModel):
@@ -176,21 +175,21 @@ class SupplierInvoiceLine(BaseModel):
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_Line_Replacement_DataType  # noqa
     """
 
-    order: int | None
+    order: int | None = None
     quantity: Decimal = Field(max_digits=22, decimal_places=2, default=Decimal(0))
     description: str = "-No description-"
-    tax_rate_options_data: TaxRateOptionsData | None
-    tax_applicability: TaxApplicability | None
-    tax_code: TaxCode | None
-    spend_category: SpendCategory | None
-    cost_center: CostCenterWorktag | None
-    project: ProjectWorktag | None
+    tax_rate_options_data: TaxRateOptionsData | None = None
+    tax_applicability: TaxApplicability | None = None
+    tax_code: TaxCode | None = None
+    spend_category: SpendCategory | None = None
+    cost_center: CostCenterWorktag | None = None
+    project: ProjectWorktag | None = None
     # Incl. VAT
     gross_amount: Decimal = Field(max_digits=18, decimal_places=3)
     # Excl. VAT
-    net_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
-    tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3)
-    budget_date: date | None
+    net_amount: Decimal | None = Field(max_digits=18, decimal_places=3, default=None)
+    tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3, default=None)
+    budget_date: date | None = None
 
 
 class BaseSupplierInvoice(WorkdayReferenceBaseModel):
@@ -200,21 +199,21 @@ class BaseSupplierInvoice(WorkdayReferenceBaseModel):
     Main reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Submit_Supplier_Invoice.html#Supplier_Invoice_DataType  # noqa
     """
 
-    invoice_number: str | None
+    invoice_number: str | None = None
     company: Company
     currency: Currency
     supplier: Supplier
-    due_date: date
+    due_date: WorkdayDate
     total_amount: Decimal = Field(max_digits=26, decimal_places=6)
     tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
-    tax_option: TaxOption | None
-    additional_reference_number: str | None
-    additional_type_reference: AdditionalReferenceType | None
-    external_po_number: str | None
+    tax_option: TaxOption | None = None
+    additional_reference_number: str | None = None
+    additional_type_reference: AdditionalReferenceType | None = None
+    external_po_number: str | None = None
     prepayment_release_type_reference: PrepaidAmortizationType | None = None
 
     lines: list[SupplierInvoiceLine]
-    attachments: list[FinancialAttachmentData] | None
+    attachments: list[FinancialAttachmentData] | None = None
 
     # Submit to business process rather than uploading invoice in draft mode
     submit: bool = True
@@ -231,12 +230,8 @@ class SupplierInvoice(BaseSupplierInvoice):
         "Supplier_Invoice_Reference_ID"
     ] = "Supplier_Invoice_Reference_ID"
 
-    invoice_date: date
+    invoice_date: WorkdayDate
     prepaid: bool = False
-
-    _normalize_dates = validator("invoice_date", "due_date", allow_reuse=True)(
-        parse_workday_date
-    )
 
 
 class SupplierInvoiceAdjustment(BaseSupplierInvoice):
@@ -248,11 +243,7 @@ class SupplierInvoiceAdjustment(BaseSupplierInvoice):
         "Supplier_Invoice_Adjustment_Reference_ID"
     ] = "Supplier_Invoice_Adjustment_Reference_ID"
 
-    adjustment_date: date
+    adjustment_date: WorkdayDate
     adjustment_reason: InvoiceAdjustmentReason = InvoiceAdjustmentReason(
         workday_id="Other_Terms"
-    )
-
-    _normalize_dates = validator("adjustment_date", "due_date", allow_reuse=True)(
-        parse_workday_date
     )

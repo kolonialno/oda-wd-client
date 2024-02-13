@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oda-wd-client"
-version = "0.0.19"
+version = "0.1.0a0"
 description = "A library for interacting with Workday from Python"
 authors = [
     "Karl Fredrik Haugland <karlfredrik.haugland@oda.com>",
@@ -8,7 +8,7 @@ authors = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-pydantic = ">=1.10.0,<2.0"
+pydantic = "^2"
 suds-py3 = "^1.4.5.0"
 pre-commit = "^3.3.3"
 yamllint = "^1.32.0"
