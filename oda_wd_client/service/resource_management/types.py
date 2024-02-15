@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from oda_wd_client.base.types import (
     File,
     WorkdayCurrency,
-    WorkdayCurrency2,
+    WorkdayCurrencyHighAccuracy,
     WorkdayDate,
     WorkdayReferenceBaseModel,
 )
@@ -210,8 +210,8 @@ class BaseSupplierInvoice(WorkdayReferenceBaseModel):
     currency: Currency
     supplier: Supplier
     due_date: WorkdayDate
-    total_amount: WorkdayCurrency2
-    tax_amount: WorkdayCurrency2
+    total_amount: WorkdayCurrencyHighAccuracy
+    tax_amount: WorkdayCurrencyHighAccuracy
     tax_option: TaxOption | None = None
     additional_reference_number: str | None = None
     additional_type_reference: AdditionalReferenceType | None = None
