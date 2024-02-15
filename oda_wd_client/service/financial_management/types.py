@@ -1,11 +1,10 @@
 from datetime import date, datetime
-from decimal import Decimal
 from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from oda_wd_client.base.types import WorkdayReferenceBaseModel
+from oda_wd_client.base.types import WorkdayCurrency2, WorkdayReferenceBaseModel
 
 # All public imports should be done through oda_wd_client.types.financial_management
 __all__: list = []
@@ -170,8 +169,8 @@ class JournalEntryLineData(BaseModel):
     """
 
     ledger_account: LedgerAccount
-    debit: Decimal | None = None
-    credit: Decimal | None = None
+    debit: WorkdayCurrency2 | None = None
+    credit: WorkdayCurrency2 | None = None
     cost_center: CostCenterWorktag | None = None
     spend_category: SpendCategory | None = None
     memo: str

@@ -1,10 +1,11 @@
 from base64 import b64encode
 from datetime import date
+from decimal import Decimal
 from enum import Enum
 from typing import Annotated, Self
 
 import magic
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, Field
 from suds import sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
@@ -14,6 +15,10 @@ mime = magic.Magic(mime=True)
 
 WorkdayDate = Annotated[date, BeforeValidator(parse_workday_date)]
 WorkdayOptionalDate = Annotated[date | None, BeforeValidator(parse_workday_date)]
+# https://github.com/pydantic/pydantic/discussions/7962#discussioncomment-7939114
+WorkdayCurrency = Annotated[Decimal, Field(max_digits=18, decimal_places=3)]
+# Workday has multiple currency definitions depending on location
+WorkdayCurrency2 = Annotated[Decimal, Field(max_digits=26, decimal_places=6)]
 
 
 class WorkdayReferenceBaseModel(BaseModel):
