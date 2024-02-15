@@ -3,9 +3,15 @@ from decimal import Decimal
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from oda_wd_client.base.types import File, WorkdayDate, WorkdayReferenceBaseModel
+from oda_wd_client.base.types import (
+    File,
+    WorkdayCurrency,
+    WorkdayCurrency2,
+    WorkdayDate,
+    WorkdayReferenceBaseModel,
+)
 from oda_wd_client.service.financial_management.types import (
     Company,
     CostCenterWorktag,
@@ -176,7 +182,7 @@ class SupplierInvoiceLine(BaseModel):
     """
 
     order: int | None = None
-    quantity: Decimal = Field(max_digits=22, decimal_places=2, default=Decimal(0))
+    quantity: WorkdayCurrency = Decimal(0)
     description: str = "-No description-"
     tax_rate_options_data: TaxRateOptionsData | None = None
     tax_applicability: TaxApplicability | None = None
@@ -185,10 +191,10 @@ class SupplierInvoiceLine(BaseModel):
     cost_center: CostCenterWorktag | None = None
     project: ProjectWorktag | None = None
     # Incl. VAT
-    gross_amount: Decimal = Field(max_digits=18, decimal_places=3)
+    gross_amount: WorkdayCurrency
     # Excl. VAT
-    net_amount: Decimal | None = Field(max_digits=18, decimal_places=3, default=None)
-    tax_amount: Decimal | None = Field(max_digits=18, decimal_places=3, default=None)
+    net_amount: WorkdayCurrency | None = None
+    tax_amount: WorkdayCurrency | None = None
     budget_date: date | None = None
 
 
@@ -204,8 +210,8 @@ class BaseSupplierInvoice(WorkdayReferenceBaseModel):
     currency: Currency
     supplier: Supplier
     due_date: WorkdayDate
-    total_amount: Decimal = Field(max_digits=26, decimal_places=6)
-    tax_amount: Decimal = Field(max_digits=26, decimal_places=6)
+    total_amount: WorkdayCurrency2
+    tax_amount: WorkdayCurrency2
     tax_option: TaxOption | None = None
     additional_reference_number: str | None = None
     additional_type_reference: AdditionalReferenceType | None = None
