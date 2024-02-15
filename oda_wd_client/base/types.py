@@ -18,7 +18,7 @@ WorkdayOptionalDate = Annotated[date | None, BeforeValidator(parse_workday_date)
 # https://github.com/pydantic/pydantic/discussions/7962#discussioncomment-7939114
 WorkdayCurrency = Annotated[Decimal, Field(max_digits=18, decimal_places=3)]
 # Workday has multiple currency definitions depending on location
-WorkdayCurrency2 = Annotated[Decimal, Field(max_digits=26, decimal_places=6)]
+WorkdayCurrencyHighAccuracy = Annotated[Decimal, Field(max_digits=26, decimal_places=6)]
 
 
 class WorkdayReferenceBaseModel(BaseModel):
