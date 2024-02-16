@@ -271,7 +271,10 @@ def _get_wd_invoice_lines_from_invoice(
         wd_line = client.factory("ns0:Supplier_Invoice_Line_Replacement_DataType")
         wd_line.Line_Order = line.order
         wd_line.Quantity = line.quantity
-        wd_line.Item_Description = line.description
+        if line.description:
+            wd_line.Item_Description = line.description
+        if line.memo:
+            wd_line.Memo = line.memo
         # Extended amount is without VAT
         wd_line.Extended_Amount = line.net_amount
         if line.spend_category:

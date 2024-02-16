@@ -183,7 +183,8 @@ class SupplierInvoiceLine(BaseModel):
 
     order: int | None = None
     quantity: WorkdayCurrency = Decimal(0)
-    description: str = "-No description-"
+    description: str = ""
+    memo: str | None = None
     tax_rate_options_data: TaxRateOptionsData | None = None
     tax_applicability: TaxApplicability | None = None
     tax_code: TaxCode | None = None
