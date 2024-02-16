@@ -302,6 +302,8 @@ def _get_wd_invoice_lines_from_invoice(
         # Worktags
         if line.cost_center:
             wd_line.Worktags_Reference.append(line.cost_center.wd_object(client))
+        if line.project:
+            wd_line.Worktags_Reference.append(line.project.wd_object(client))
 
         returned_lines.append(wd_line)
 
