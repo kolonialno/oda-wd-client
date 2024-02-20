@@ -116,6 +116,7 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
             "Payment_Terms_ID",
         ),
         primary_tax_id=primary_tax_id,
+        worktag_only=sup_data["Worktag_Only"],
         # Currency_ID _should_ be in accordance with ISO 4217
         currency=get_id_from_list(currency_ref["ID"], "Currency_ID")
         if currency_ref
