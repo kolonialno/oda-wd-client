@@ -93,6 +93,7 @@ class Supplier(WorkdayReferenceBaseModel):
     bank_account: str | None = None
     iban: str | None = None
     primary_tax_id: str | None = None
+    worktag_only: bool = False
 
 
 class TaxRate(WorkdayReferenceBaseModel):
