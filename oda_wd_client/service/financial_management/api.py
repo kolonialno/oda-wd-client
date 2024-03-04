@@ -16,6 +16,7 @@ from oda_wd_client.service.financial_management.types import (
 )
 from oda_wd_client.service.financial_management.utils import (
     get_business_process_parameters,
+    make_conversion_rate_reference_object,
     pydantic_accounting_journal_to_workday,
     pydantic_conversion_rate_to_workday,
     workday_company_to_pydantic,
@@ -53,10 +54,19 @@ class FinancialManagement(WorkdayClient):
             )
 
     def put_currency_rate(self, rate: ConversionRate) -> sudsobject.Object:
-        data_object = pydantic_conversion_rate_to_workday(rate, client=self)
-        return self._request(
-            "Put_Currency_Conversion_Rate", Currency_Conversion_Rate_Data=data_object
-        )
+        request_kwargs = {
+            "Currency_Conversion_Rate_Data": pydantic_conversion_rate_to_workday(
+                rate, client=self
+            ),
+        }
+
+        # If we're updated an existing rate, we need to reference that in the request
+        if rate.workday_id:
+            request_kwargs[
+                "Currency_Conversion_Rate_Reference"
+            ] = make_conversion_rate_reference_object(self, rate.workday_id)
+
+        return self._request("Put_Currency_Conversion_Rate", **request_kwargs)
 
     def get_cost_centers(
         self, return_suds_object=False
