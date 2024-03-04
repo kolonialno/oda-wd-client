@@ -163,6 +163,20 @@ def workday_project_to_pydantic(data: dict) -> ProjectWorktag:
     )
 
 
+def make_conversion_rate_reference_object(
+    client: WorkdayClient, rate_id: str
+) -> sudsobject.Object:
+    """
+    Creating a reference object used to update a specific conversion rate
+    """
+    ref_obj = client.factory("ns0:Currency_Conversion_RateObjectType")
+    ref = client.factory("ns0:Currency_Conversion_RateObjectIDType")
+    ref._type = "WID"
+    ref.value = rate_id
+    ref_obj.ID.append(ref)
+    return ref_obj
+
+
 def pydantic_conversion_rate_to_workday(
     rate: ConversionRate, client: WorkdayClient
 ) -> sudsobject.Object:
