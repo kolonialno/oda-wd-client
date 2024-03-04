@@ -1,7 +1,7 @@
 from suds import sudsobject
 
 from oda_wd_client.base.api import WorkdayClient
-from oda_wd_client.base.utils import get_id_from_list
+from oda_wd_client.base.utils import get_id_from_list, localize_datetime_to_string
 from oda_wd_client.service.financial_management.types import (
     AccountingJournalData,
     Company,
@@ -23,11 +23,7 @@ def workday_conversion_rate_to_pydantic(data: dict) -> ConversionRate:
     workday_id = get_id_from_list(
         data["Currency_Conversion_Rate_Reference"]["ID"], "WID"
     )
-    assert len(data["Currency_Conversion_Rate_Data"]) == 1, (
-        "Code is written expecting that we only have one currency "
-        "rate data per object, but that is not the case here"
-    )
-    sub_data = data["Currency_Conversion_Rate_Data"][0]
+    sub_data = data["Currency_Conversion_Rate_Data"]
     from_ref = get_id_from_list(
         sub_data["From_Currency_Reference"]["ID"], "Currency_ID"
     )
@@ -189,7 +185,9 @@ def pydantic_conversion_rate_to_workday(
     rate_type_id = client.factory("ns0:Currency_Rate_TypeObjectIDType")
 
     # Populate objects
-    rate_data.Effective_Timestamp = rate.effective_timestamp
+    rate_data.Effective_Timestamp = localize_datetime_to_string(
+        rate.effective_timestamp
+    )
     rate_data.Currency_Rate = rate.rate
     from_currency_id.value = rate.from_currency_iso
     target_currency_id.value = rate.to_currency_iso
