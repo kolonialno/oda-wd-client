@@ -73,6 +73,16 @@ class SupplierStatus(WorkdayReferenceBaseModel):
     ] = "Business_Entity_Status_Value_ID"
 
 
+class Organization(WorkdayReferenceBaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v42.1/Get_Suppliers.html#OrganizationObjectType  # noqa
+    """
+
+    _class_name = "OrganizationObject"
+    workday_id: str
+    workday_id_type: Literal["Organization_Reference_ID"] = "Organization_Reference_ID"
+
+
 class Supplier(WorkdayReferenceBaseModel):
     """
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v40.2/Get_Suppliers.html#SupplierType  # noqa
@@ -94,6 +104,7 @@ class Supplier(WorkdayReferenceBaseModel):
     iban: str | None = None
     primary_tax_id: str | None = None
     worktag_only: bool = False
+    restricted_to_companies: list[Organization] = []
 
 
 class TaxRate(WorkdayReferenceBaseModel):
