@@ -13,6 +13,7 @@ from oda_wd_client.service.financial_management.types import (
     ProjectWorktag,
     SpendCategory,
 )
+from oda_wd_client.service.resource_management._base_types import Organization
 from oda_wd_client.service.resource_management.types import TaxApplicability
 
 
@@ -89,11 +90,19 @@ def workday_company_to_pydantic(data: dict) -> Company:
     else:
         country_code = None
 
+    parent_org_refs = cdata.get("Organization_Container_Reference", [])
+    parent_orgs = [
+        _org
+        for _org in [Organization.from_id_list(item["ID"]) for item in parent_org_refs]
+        if _org is not None
+    ]
+
     return Company(
         workday_id=cdata["Organization_Data"]["ID"],
         name=cdata["Organization_Data"]["Organization_Name"],
         country_code=country_code,
         currency=Currency(currency_code=currency_code) if currency_code else None,
+        parents=parent_orgs,
     )
 
 

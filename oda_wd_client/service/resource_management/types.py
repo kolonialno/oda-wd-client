@@ -20,6 +20,8 @@ from oda_wd_client.service.financial_management.types import (
     SpendCategory,
 )
 
+from ._base_types import Organization
+
 # All public imports should be done through oda_wd_client.types.resource_management
 __all__: list = []
 
@@ -71,16 +73,6 @@ class SupplierStatus(WorkdayReferenceBaseModel):
     workday_id_type: Literal[
         "Business_Entity_Status_Value_ID"
     ] = "Business_Entity_Status_Value_ID"
-
-
-class Organization(WorkdayReferenceBaseModel):
-    """
-    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v42.1/Get_Suppliers.html#OrganizationObjectType  # noqa
-    """
-
-    _class_name = "OrganizationObject"
-    workday_id: str
-    workday_id_type: Literal["Organization_Reference_ID"] = "Organization_Reference_ID"
 
 
 class Supplier(WorkdayReferenceBaseModel):

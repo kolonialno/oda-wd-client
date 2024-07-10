@@ -8,6 +8,7 @@ from oda_wd_client.base.types import (
     WorkdayCurrencyHighAccuracy,
     WorkdayReferenceBaseModel,
 )
+from oda_wd_client.service.resource_management._base_types import Organization
 
 # All public imports should be done through oda_wd_client.types.financial_management
 __all__: list = []
@@ -69,6 +70,7 @@ class Company(WorkdayReferenceBaseModel):
     name: str | None = None
     currency: Currency | None = None
     country_code: str | None = Field(max_length=2, default=None)
+    parents: list[Organization] = []
 
 
 class JournalSource(WorkdayReferenceBaseModel):
