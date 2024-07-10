@@ -10,9 +10,9 @@ from oda_wd_client.service.financial_management.types import (
     Currency,
     SpendCategory,
 )
+from oda_wd_client.service.resource_management._base_types import Organization
 from oda_wd_client.service.resource_management.exceptions import NoSupplierID
 from oda_wd_client.service.resource_management.types import (
-    Organization,
     PrepaidAmortizationType,
     Supplier,
     SupplierInvoice,
@@ -108,9 +108,12 @@ def workday_supplier_to_pydantic(data: dict) -> Supplier:
             status_ref = _ref
 
     restrict_org_refs = sup_data.get("Restricted_To_Companies_Reference", list())
-    _orgs = [Organization.from_id_list(item["ID"]) for item in restrict_org_refs]
+    restrict_orgs = [
+        Organization.from_id_list(item["ID"]) for item in restrict_org_refs
+    ]
+
     # Type narrowing to remove falsy values
-    restricted_orgs = [org for org in _orgs if org]
+    restricted_orgs = [org for org in restrict_orgs if org]
 
     return Supplier(
         workday_id=sup_id,
