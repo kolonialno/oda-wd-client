@@ -11,6 +11,7 @@ from oda_wd_client.service.financial_management.types import (
     ConversionRateType,
     CostCenterWorktag,
     Currency,
+    ImportCurrencyConversionRatesRequest,
     ProjectWorktag,
     SpendCategory,
 )
@@ -19,6 +20,7 @@ from oda_wd_client.service.financial_management.utils import (
     make_conversion_rate_reference_object,
     pydantic_accounting_journal_to_workday,
     pydantic_conversion_rate_to_workday,
+    pydantic_conversion_rates_request_to_workday,
     workday_company_to_pydantic,
     workday_conversion_rate_to_pydantic,
     workday_conversion_rate_type_to_pydantic,
@@ -67,6 +69,14 @@ class FinancialManagement(WorkdayClient):
             ] = make_conversion_rate_reference_object(self, rate.workday_id)
 
         return self._request("Put_Currency_Conversion_Rate", **request_kwargs)
+
+    def import_currency_rates(
+        self, rates_request: ImportCurrencyConversionRatesRequest
+    ) -> sudsobject.Object:
+        request_kwargs = pydantic_conversion_rates_request_to_workday(
+            client=self, request=rates_request
+        )
+        return self._request("Import_Currency_Conversion_Rates", **request_kwargs)
 
     def get_cost_centers(
         self, return_suds_object=False

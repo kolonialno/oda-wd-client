@@ -9,6 +9,7 @@ from oda_wd_client.service.financial_management.types import (
     ConversionRateType,
     CostCenterWorktag,
     Currency,
+    ImportCurrencyConversionRatesRequest,
     JournalEntryLineData,
     ProjectWorktag,
     SpendCategory,
@@ -183,12 +184,17 @@ def make_conversion_rate_reference_object(
 
 
 def pydantic_conversion_rate_to_workday(
-    rate: ConversionRate, client: WorkdayClient
+    rate: ConversionRate,
+    client: WorkdayClient,
+    rate_datatype: str = "Currency_Conversion_Rate_DataType",
 ) -> sudsobject.Object:
     """
     Create a suds object from a Pydantic object. Used for creating/updating conversion rates in Workday
+
+    When we use the Put_Currency_Conversion_Rate endpoint, the datatype of the data object is different from when we
+    use Import_Currency_Conversion_Rates.
     """
-    rate_data = client.factory("ns0:Currency_Conversion_Rate_DataType")
+    rate_data = client.factory(f"ns0:{rate_datatype}")
     from_currency_id = client.factory("ns0:CurrencyObjectIDType")
     target_currency_id = client.factory("ns0:CurrencyObjectIDType")
     rate_type_id = client.factory("ns0:Currency_Rate_TypeObjectIDType")
@@ -200,7 +206,10 @@ def pydantic_conversion_rate_to_workday(
     rate_data.Currency_Rate = rate.rate
     from_currency_id.value = rate.from_currency_iso
     target_currency_id.value = rate.to_currency_iso
-    rate_data.Calculate_Inverse_Rate = True
+
+    # When using Import_Currency_Conversion_Rates, this is set on the full transaction and not individual rates
+    if rate_datatype == "Currency_Conversion_Rate_DataType":
+        rate_data.Calculate_Inverse_Rate = True
 
     # Stuff everything into the final object
     from_currency_id._type = "Currency_ID"
@@ -218,6 +227,52 @@ def pydantic_conversion_rate_to_workday(
     rate_data.Currency_Rate_Type_Reference = rate_type
 
     return rate_data
+
+
+def pydantic_conversion_rates_request_to_workday(
+    client: WorkdayClient, request: ImportCurrencyConversionRatesRequest
+) -> dict[str, bool | list[sudsobject.Object] | sudsobject.Object]:
+    """
+    This generates the direct parameters to be used in the call to Import_Currency_Conversion_Rates, which is why we
+    build a dict of values
+    """
+    rate_data = [
+        pydantic_conversion_rate_to_workday(
+            rate=rate,
+            client=client,
+            rate_datatype="Currency_Conversion_Rate__HV__DataType",
+        )
+        for rate in request.rates
+    ]
+    # request = client.factory("ns0:Import_Currency_Conversion_Rates_RequestType")
+    kwargs = {
+        "Currency_Conversion_Rate_Data": rate_data,
+        "Calculate_Inverse_Rate": request.calculate_inverse_rate,
+    }
+
+    if request.cross_rates_anchor_currency_iso:
+        kwargs["Calculate_Cross_Rates"] = True
+        anchor_currency = client.factory("ns0:CurrencyObjectType")
+        anchor_currency_id = client.factory("ns0:CurrencyObjectIDType")
+        anchor_currency_id.value = request.cross_rates_anchor_currency_iso
+        anchor_currency_id._type = "Currency_ID"
+        anchor_currency.ID.append(anchor_currency_id)
+        kwargs["Cross_Rates_Anchor_Currency_Reference"] = anchor_currency
+
+    return kwargs
+
+
+def make_conversion_rates_request(
+    rates: list[ConversionRate],
+    calculate_reverse: bool = True,
+    anchor_currency_iso: str | None = None,
+) -> ImportCurrencyConversionRatesRequest:
+    return ImportCurrencyConversionRatesRequest(
+        rates=rates,
+        calculate_inverse_rate=calculate_reverse,
+        calculate_cross_rates=True if anchor_currency_iso else False,
+        cross_rates_anchor_currency_iso=anchor_currency_iso or None,
+    )
 
 
 def _pydantic_journal_entry_line_to_workday(
