@@ -47,6 +47,17 @@ class ConversionRateType(BaseModel):
     is_default: bool = False
 
 
+class ImportCurrencyConversionRatesRequest(BaseModel):
+    """
+    Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v42.2/Import_Currency_Conversion_Rates.html#Import_Currency_Conversion_Rates_RequestType  # noqa
+    """
+
+    calculate_inverse_rate: bool = True
+    calculate_cross_rates: bool = False
+    cross_rates_anchor_currency_iso: str | None = Field(max_length=3, default=None)
+    rates: list[ConversionRate]
+
+
 class Currency(WorkdayReferenceBaseModel):
     """
     Reference: https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v40.2/GetAll_Currencies.html#Currency_DataType  # noqa
