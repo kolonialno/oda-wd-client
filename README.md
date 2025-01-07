@@ -1,5 +1,5 @@
 # Oda Workday client
-A Python client library made for Oda's implementation of the various Workday APIs.
+A python client library made for Oda's implementation of the various Workday APIs.
 
 Released publicly for inspiration and ease of implementation on our end, but is not maintained based on community
 needs.
